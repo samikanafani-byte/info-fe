@@ -1,0 +1,29 @@
+/* Basic editor styles */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Compact view specific styles */
+.hybrid-input-compact .ProseMirror {
+  max-height: 70px; /* Approx 3 lines */
+  overflow-y: auto;
+}
+
+/* Mention styles */
+.mention {
+  background-color: var(--color-primary-blue);
+  color: var(--color-text-on-primary);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.375rem;
+  font-weight: 500;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
