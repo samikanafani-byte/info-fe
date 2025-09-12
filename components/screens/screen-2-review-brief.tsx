@@ -32,6 +32,7 @@ export default function Screen2ReviewBrief({
   const [editText, setEditText] = useState("")
   const [isResearching, setIsResearching] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
+  const [projectState, setProjectState] = useState<ProjectState | null>(null)
 
   const handleEdit = (section: "brief" | "scoring", content: string) => {
     streamState.search_stream.stream_summary = content
@@ -43,13 +44,17 @@ export default function Screen2ReviewBrief({
     setEditingSection(null)
     setEditText("")
   }
+  const handleOnApprove = async () => {
+    streamState.status = "keywords"
+    const newResp = await updateProject(session_id, streamState.stream_id, streamState)
+    onDataChange(newResp)
+    onApprove()
+  }
 
   const handleSave = async () => {
     setLoadingSave(true)
     try{
-      streamState.status="keywords"
       const newResp = await updateProject(session_id, streamState.stream_id, streamState)
-      onDataChange(newResp)
     }
     catch(err){
       console.error("Failed to save updated brief:", err)
@@ -59,34 +64,6 @@ export default function Screen2ReviewBrief({
     
   }
 
-  // const handleFindMoreCompanies = () => {
-  //   setIsResearching(true)
-  //   setTimeout(() => {
-  //     const newCompanies = [
-  //       {
-  //         name: "COSCO",
-  //         source: "AI Researched",
-  //         justification: "Major Chinese container line with global reach.",
-  //         isNew: true,
-  //       },
-  //       {
-  //         name: "Evergreen Marine",
-  //         source: "AI Researched",
-  //         justification: "Taiwanese shipping company, a key player in Asia.",
-  //         isNew: true,
-  //       },
-  //     ]
-  //     const updatedData = {
-  //       ...decodedData,
-  //       companies: {
-  //         ...decodedData.companies,
-  //         secondary: [...decodedData.companies.secondary, ...newCompanies],
-  //       },
-  //     }
-  //     onDataChange(updatedData)
-  //     setIsResearching(false)
-  //   }, 2500)
-  // }
 
   const renderEditableItem = (id: "brief" | "scoring", title: string, content: string) => {
     const isEditing = editingSection === id
@@ -187,7 +164,7 @@ export default function Screen2ReviewBrief({
         </Accordion>
       </div>
       <div className="mt-4 space-y-2">
-        <Button className="w-full" onClick={onApprove}>
+        <Button className="w-full" onClick={handleOnApprove}>
           Approve & Review Companies
         </Button>
         <Button variant="outline" className="w-full bg-transparent" onClick={onReanalyze}>

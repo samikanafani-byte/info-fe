@@ -11,6 +11,7 @@ import { CompanyState, createEmptyCompanyState } from "@/types/companyState"
 
 import { ProjectState } from "@/types/project"
 import { updateProject } from "@/services/projectService"
+import { set } from "date-fns"
 
 
 
@@ -30,34 +31,45 @@ export default function Screen2_5ReviewCompanies({
   onDataChange,
 }: Screen2_5ReviewCompaniesProps) {
   const [newCompany, setNewCompany] = useState("")
+  const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
 
   const handleRemoveCompany = async (company: string) => {
     const updatedCompanies = {
-      ...streamState,
-      matching_companies_in_db: streamState.matching_companies_in_db?.filter((c) => c !== company) || [],
-      status: "validation"
+      ...newStreamState,
+      matching_companies_in_db: newStreamState.matching_companies_in_db?.filter((c) => c !== company) || [],
     }
     try{
-    
       const newResp = await updateProject(sessionId, updatedCompanies.stream_id, updatedCompanies)
       onDataChange(newResp)
+      const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+      if (stream_to_set){
+        setNewStreamState(stream_to_set)
+      } 
     }catch(error){
       console.error("Error updating project:", error)
     }
   }
+  const handleApprove = async () => {
+    newStreamState.status = "validation"
+    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    onDataChange(newResp)
+    onApprove()
+  }
 
   const handleAddCompany = async () => {
     if (newCompany.trim()) {
-      // const newCompanyState = createEmptyCompanyState(newCompany.trim(), streamState.search_stream.stream_summary, streamState.search_stream.detailed_brief_decoding, streamState.keywords)
       try{
         //append the new company state to the existing array
         const updatedCompanies = {
-          ...streamState,
-          matching_companies_in_db: [...(streamState.matching_companies_in_db || []), newCompany.trim()],
-          status: "validation"
+          ...newStreamState,
+          matching_companies_in_db: [...(newStreamState.matching_companies_in_db || []), newCompany.trim()],
         }
-        const newResp = await updateProject(sessionId, streamState.stream_id, updatedCompanies)
+        const newResp = await updateProject(sessionId, newStreamState.stream_id, updatedCompanies)
         onDataChange(newResp)
+        const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+        if (stream_to_set) {
+          setNewStreamState(stream_to_set)
+        } 
         
       }catch(error){
         console.error("Error updating project:", error)
@@ -77,7 +89,7 @@ export default function Screen2_5ReviewCompanies({
           <section>
             <h3 className="text-base font-semibold text-text-primary mb-3">Primary Targets</h3>
             <div className="space-y-2">
-              {streamState.matching_companies_in_db?.map((company) => (
+              {newStreamState.matching_companies_in_db?.map((company) => (
                 <CompanyCard
                   key={company}
                   company={company}
@@ -118,7 +130,7 @@ export default function Screen2_5ReviewCompanies({
       </div>
       <div className="mt-4 pt-4 border-t border-custom-border">
         <div className="space-y-2">
-          <Button className="w-full" onClick={onApprove}>
+          <Button className="w-full" onClick={handleApprove}>
             Approve Companies & Generate Keywords
           </Button>
           <Button variant="outline" className="w-full bg-transparent" onClick={onBack}>

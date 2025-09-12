@@ -373,15 +373,15 @@ export default function ExpertSearchPage() {
             onDataChange={(data) => updateStream(data)}
           />
         )
-      case "validation":
-        return (
-          <Screen3ReviewKeywords
-            keywordData={activeDecoding.keywords}
-            onApprove={handleApproveKeywords}
-            onBack={() => updateActiveDecoding((d) => (d.step = 2))}
-            onDataChange={(data) => updateActiveDecoding((d) => (d.keywords = data))}
-          />
-        )
+      // case "validation":
+      //   return (
+      //     <Screen3ReviewKeywords
+      //       keywordData={}
+      //       onApprove={handleApproveKeywords}
+      //       onBack={() => updateActiveDecoding((d) => (d.step = 2))}
+      //       onDataChange={(data) => updateActiveDecoding((d) => (d.keywords = data))}
+      //     />
+      //   )
       // case 4:
       //   return (
       //     <Screen3_5BenchmarkReview
@@ -392,6 +392,7 @@ export default function ExpertSearchPage() {
       //     />
       //   )
       case "sourcing":
+        case "validation":
         return <Screen4SourcingPipeline onViewResults={handleViewResults} />
       // case 6:
       //   return (
