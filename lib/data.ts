@@ -48,6 +48,9 @@ export interface Expert {
 
 export type BenchmarkCategory = "relevant" | "ambiguous" | "irrelevant"
 
+
+
+
 export interface JobTitleBenchmarkItem {
   id: string
   title: string

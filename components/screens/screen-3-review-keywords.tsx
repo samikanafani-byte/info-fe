@@ -9,98 +9,143 @@ import { Input } from "@/components/ui/input"
 import { X, Plus } from "lucide-react"
 import type { KeywordData, ReasonedKeyword } from "@/lib/data"
 import { ReasoningTooltip } from "@/components/reasoning-tooltip"
+import { StreamState } from "@/types/streamState"
+import { ProjectState } from "@/types/project"
+import { KeywordItem, Keywords } from "@/types/keywords"
+import { updateProject } from "@/services/projectService"
 
 interface Screen3ReviewKeywordsProps {
-  keywordData: KeywordData
+  streamState: StreamState
+  sessionId: string
   onApprove: () => void
   onBack: () => void
-  onDataChange: (data: KeywordData) => void
+  onDataChange: (data: ProjectState) => void
 }
 
 export default function Screen3ReviewKeywords({
-  keywordData,
+  streamState,
+  sessionId,
   onApprove,
   onBack,
   onDataChange,
 }: Screen3ReviewKeywordsProps) {
-  const [keywords, setKeywords] = useState(keywordData)
+  
+  const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
   const [newKeyword, setNewKeyword] = useState<{ [key: string]: string }>({})
-  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
-  const handleRemoveKeyword = (category: keyof KeywordData, keywordToRemove: string) => {
-    const updatedKeywords = {
-      ...keywords,
-      [category]: keywords[category].filter((kw) => kw.text !== keywordToRemove),
-    }
-    setKeywords(updatedKeywords)
-    onDataChange(updatedKeywords)
-  }
+  const functionKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "function") ?? []
+  const knowledgeKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "knowledge_gap") ?? []
+  const seniorityKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "seniority") ?? []
 
-  const handleAddKeyword = (category: keyof KeywordData) => {
-    const keywordToAdd = newKeyword[category]?.trim()
-    if (keywordToAdd && !keywords[category].find((kw) => kw.text === keywordToAdd)) {
-      const newReasonedKeyword: ReasonedKeyword = {
-        text: keywordToAdd,
-        reasoning: "Manually added by user.",
+
+  const handleRemoveKeyword = async (category: string, keywordToRemove: string) => {
+    if (!newStreamState.keywords) return
+    const keyWordList: KeywordItem[] =[];
+    // loop over the keywords to find the right category
+    for (let i = 0; i < newStreamState.keywords.list_of_keywords.length; i++) {
+      if ((newStreamState.keywords.list_of_keywords[i].category !== category) ||( newStreamState.keywords.list_of_keywords[i].keyword !== keywordToRemove)) {
+        keyWordList.push(newStreamState.keywords.list_of_keywords[i])    
       }
-      const updatedKeywords = {
-        ...keywords,
-        [category]: [...keywords[category], newReasonedKeyword],
-      }
-      setKeywords(updatedKeywords)
-      onDataChange(updatedKeywords)
-      setNewKeyword({ ...newKeyword, [category]: "" })
+    }
+    newStreamState.keywords.list_of_keywords = keyWordList
+    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    onDataChange(newResp)
+    const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+    if (stream_to_set){
+      setNewStreamState(stream_to_set)
+    }
+    
+  }
+
+  const handleAddKeyword = async (category: string, newKeyWord: string) => {
+    if (!newStreamState.keywords) return
+    if (!newKeyWord.trim()) return
+
+    // create a new keyword item
+    const newKeywordItem: KeywordItem = {
+      category: category,
+      keyword: newKeyWord.trim(),
+      viewpoint: "Viewpoint 3: Operators",
+      proof: "Manually added keyword",
+      component_keywords: [
+        newKeyWord.trim()
+      ],
+    }
+    newStreamState.keywords.list_of_keywords.push(newKeywordItem)
+    // loop over the keywords to find the right category
+    
+    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    onDataChange(newResp)
+    const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+    if (stream_to_set){
+      setNewStreamState(stream_to_set)
     }
   }
 
-  const handleInputChange = (category: keyof KeywordData, value: string) => {
-    setNewKeyword({ ...newKeyword, [category]: value })
-  }
+  
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, category: keyof KeywordData) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      handleAddKeyword(category)
+  // Fixed handleInputChange function
+  const handleInputChange = (id: string, value: string) => {
+    setNewKeyword(prev => ({ ...prev, [id]: value }));
+  };
+
+
+  // Fixed renderKeywordCard function
+  const renderKeywordCard = (title: string, keyWordItems: KeywordItem[], category:string) => {
+    // Guard clause to prevent rendering if the item is missing
+    if (!keyWordItems || keyWordItems.length === 0) {
+      return null;
     }
-  }
 
-  const renderKeywordCard = (id: keyof KeywordData, title: string, keywordList: ReasonedKeyword[]) => (
-    <Card className="border-custom-border">
-      <CardHeader className="p-4">
-        <CardTitle className="text-base text-text-primary">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <div className="flex flex-wrap gap-2 mb-3">
-          {keywordList.map((keyword) => (
-            <ReasoningTooltip key={keyword.text} content={keyword.reasoning}>
-              <Badge variant="secondary" className="text-sm py-1 cursor-help bg-background-subtle text-text-primary">
-                {keyword.text}
-                <button
-                  onClick={() => handleRemoveKeyword(id, keyword.text)}
-                  className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5 text-text-secondary"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            </ReasoningTooltip>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            ref={(el) => (inputRefs.current[id] = el)}
-            placeholder="+ Add keyword"
-            className="h-8 text-sm"
-            value={newKeyword[id] || ""}
-            onChange={(e) => handleInputChange(id, e.target.value)}
-            onKeyDown={(e) => handleInputKeyDown(e, id)}
-          />
-          <Button size="sm" variant="outline" onClick={() => handleAddKeyword(id)}>
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
+    
+    // The rest of the component remains the same
+    return (
+      <Card className="border-custom-border">
+        <CardHeader className="p-4">
+          <CardTitle className="text-base text-text-primary">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {keyWordItems.map((keyword) => (
+              <ReasoningTooltip key={keyword.keyword} content={keyword.proof}>
+                <Badge variant="secondary" className="text-sm py-1 cursor-help bg-background-subtle text-text-primary">
+                  {keyword.keyword}
+                  <button
+                    onClick={() => handleRemoveKeyword(keyword.category, keyword.keyword)}
+                    className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5 text-text-secondary"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              </ReasoningTooltip>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="+ Add keyword"
+              className="h-8 text-sm"
+              value={newKeyword[category] || ""}
+              onChange={(e) => handleInputChange(category, e.target.value)}
+              // onKeyDown={(e) => handleInputKeyDown(e, id)}
+            />
+            <Button size="sm" variant="outline" onClick={() => handleAddKeyword(category, newKeyword[category] || "")}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const handleApprove= async () => {
+    // handle the approval
+    newStreamState.status = "validation"
+    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    // send a request to continue the company check
+    
+    onDataChange(newResp)
+    onApprove()
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -110,13 +155,15 @@ export default function Screen3ReviewKeywords({
 
         {/* Responsive grid layout for keyword cards */}
         <div className="grid grid-cols-1 @2xl/main:grid-cols-3 gap-4">
-          {renderKeywordCard("function", "Function Keywords", keywords.function)}
-          {renderKeywordCard("knowledge", "Knowledge Gaps Keywords", keywords.knowledge)}
-          {renderKeywordCard("seniority", "Seniority Keywords", keywords.seniority)}
+
+          {renderKeywordCard("Function Keywords", functionKeyWords!, "function")}
+          {renderKeywordCard("Knowledge Gaps Keywords", knowledgeKeyWords!, "knowledge")}
+          {renderKeywordCard("Seniority Keywords", seniorityKeyWords!, "seniority")}
+
         </div>
       </div>
       <div className="mt-4 space-y-2">
-        <Button className="w-full" onClick={onApprove}>
+        <Button className="w-full" onClick={handleApprove}>
           Approve & Begin Sourcing
         </Button>
         <Button variant="outline" className="w-full bg-transparent" onClick={onBack}>

@@ -20,7 +20,7 @@ interface Screen2ReviewBriefProps {
   onReanalyze: () => void
   onDataChange: (data: ProjectState) => void
 }
-
+type SECTION = "brief" | "scoring" | "context_and_knowledge_gap" | "end_client_sub_sector" | "industries_of_interest" | "sub_sectors_of_interest" | "value_chain_analysis" | "desired_viewpoint_node" | "geography" | "project_logistics"
 export default function Screen2ReviewBrief({
   session_id,
   streamState,
@@ -28,14 +28,43 @@ export default function Screen2ReviewBrief({
   onReanalyze,
   onDataChange,
 }: Screen2ReviewBriefProps) {
-  const [editingSection, setEditingSection] = useState<"brief" | "scoring" | null>(null)
+  const [editingSection, setEditingSection] = useState<SECTION | null>(null)
   const [editText, setEditText] = useState("")
   const [isResearching, setIsResearching] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
   const [projectState, setProjectState] = useState<ProjectState | null>(null)
 
-  const handleEdit = (section: "brief" | "scoring", content: string) => {
-    streamState.search_stream.stream_summary = content
+  const handleEdit = (section: SECTION, content: string) => {
+    if (section === "brief"){
+      streamState.search_stream.stream_summary = content
+    }
+      else if (section === "context_and_knowledge_gap"){
+      streamState.search_stream.detailed_brief_decoding.context_and_knowledge_gap = content
+    }
+    else if (section === "end_client_sub_sector"){
+      streamState.search_stream.detailed_brief_decoding.end_client_sub_sector = content
+    }
+    else if (section === "industries_of_interest"){
+      streamState.search_stream.detailed_brief_decoding.industries_of_interest = content
+    }
+    else if (section === "sub_sectors_of_interest"){
+      streamState.search_stream.detailed_brief_decoding.sub_sectors_of_interest = content
+    }
+    else if (section === "value_chain_analysis"){
+      streamState.search_stream.detailed_brief_decoding.value_chain_analysis = content
+    }
+    else if (section === "desired_viewpoint_node"){
+      streamState.search_stream.detailed_brief_decoding.desired_viewpoint_node = content
+    }
+    else if (section === "geography"){
+      streamState.search_stream.detailed_brief_decoding.geography = content
+    }
+    else if (section === "project_logistics"){
+      streamState.search_stream.detailed_brief_decoding.project_logistics = content
+    }
+    
+
+    
     setEditingSection(section)
     setEditText(content)
   }
@@ -65,7 +94,7 @@ export default function Screen2ReviewBrief({
   }
 
 
-  const renderEditableItem = (id: "brief" | "scoring", title: string, content: string) => {
+  const renderEditableItem = (id: SECTION, title: string, content: string) => {
     const isEditing = editingSection === id
     return (
       <AccordionItem value={id}>
@@ -123,10 +152,18 @@ export default function Screen2ReviewBrief({
         <p className="text-sm text-text-secondary mb-4">Review and edit the AI's interpretation of the brief.</p>
         <Accordion type="multiple" defaultValue={["brief", "expertise", "companies"]}>
           {renderEditableItem("brief", "Detailed Brief Decoding", streamState.search_stream.stream_summary)}
-          <AccordionItem value="expertise">
-            <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
+          {renderEditableItem("context_and_knowledge_gap", "Context and Knowledge Gap", streamState.search_stream.detailed_brief_decoding.context_and_knowledge_gap)}
+          {renderEditableItem("end_client_sub_sector", "End Client Sub-Sector", streamState.search_stream.detailed_brief_decoding.end_client_sub_sector)}
+          {renderEditableItem("industries_of_interest", "Industries of Interest", streamState.search_stream.detailed_brief_decoding.industries_of_interest)}
+          {renderEditableItem("sub_sectors_of_interest", "Sub-Sectors of Interest", streamState.search_stream.detailed_brief_decoding.sub_sectors_of_interest)}
+          {renderEditableItem("value_chain_analysis", "Value Chain Analysis", streamState.search_stream.detailed_brief_decoding.value_chain_analysis)}
+          {renderEditableItem("desired_viewpoint_node", "Desired Viewpoint/Node", streamState.search_stream.detailed_brief_decoding.desired_viewpoint_node)}
+          {renderEditableItem("geography", "Geography", streamState.search_stream.detailed_brief_decoding.geography)}
+          {renderEditableItem("project_logistics", "Project Logistics", streamState.search_stream.detailed_brief_decoding.project_logistics)}
+          {/* <AccordionItem value="expertise"> */}
+            {/* <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
               Map Needed Expertise
-            </AccordionTrigger>
+            </AccordionTrigger> */}
             {/* <AccordionContent>
               <ul className="list-disc pl-5 space-y-1">
                 {decodedData.expertise.map((item) => (
@@ -138,7 +175,7 @@ export default function Screen2ReviewBrief({
                 ))}
               </ul>
             </AccordionContent> */}
-          </AccordionItem>
+          {/* </AccordionItem> */}
           <AccordionItem value="companies">
             <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
               Identify Companies of Interest

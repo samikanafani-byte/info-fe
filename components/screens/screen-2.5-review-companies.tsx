@@ -25,7 +25,7 @@ interface Screen2_5ReviewCompaniesProps {
 
 export default function Screen2_5ReviewCompanies({
   sessionId,
-  streamState,
+streamState,
   onApprove,
   onBack,
   onDataChange,

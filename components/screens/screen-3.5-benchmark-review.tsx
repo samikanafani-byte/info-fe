@@ -8,9 +8,14 @@ import { DroppableAccordionItem } from "@/components/droppable-accordion-item"
 import { BenchmarkKanbanColumn } from "@/components/benchmark-kanban-column"
 import type { JobTitleBenchmarkItem, BenchmarkCategory } from "@/lib/data"
 import { HybridFeedbackInput } from "@/components/hybrid-feedback-input"
+import { StreamState } from "@/types/streamState"
+import { HighlyRelevantJobFunctionExpert } from "@/types/highlyRelevantJobFunctionExpert"
+import { NeedsMoreInfoExpert } from "@/types/NeedsMoreInfoExperts"
+
 
 interface Screen3_5BenchmarkReviewProps {
-  benchmarkData: JobTitleBenchmarkItem[]
+  sessionId: string, 
+  streamState: StreamState,
   onStartSourcing: () => void
   onRebenchmark: () => void
 }
@@ -22,32 +27,64 @@ const CATEGORIES = [
 ] as const
 
 export default function Screen3_5BenchmarkReview({
-  benchmarkData,
+  sessionId,
+  streamState,
   onStartSourcing,
   onRebenchmark,
 }: Screen3_5BenchmarkReviewProps) {
-  const [items, setItems] = useState(benchmarkData)
-  const [feedbackText, setFeedbackText] = useState("")
 
-  const getItemsForCategory = (category: BenchmarkCategory) => items.filter((item) => item.currentCategory === category)
+  
+  const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
+  
+  
+  const highlyRelevantJobFunctions: HighlyRelevantJobFunctionExpert[] = newStreamState.highly_relevant_job_function_experts ?? []
+  const needMoreInfoJobFunctions: NeedsMoreInfoExpert[] = newStreamState.needs_more_info_experts ?? []
+
+
+  const getItemsForCategory = (category: BenchmarkCategory): JobTitleBenchmarkItem[] => {
+    switch (category) {
+      case "relevant":
+        return highlyRelevantJobFunctions.map((jobFunction, index) => ({
+          id: `relevant-${index}`,
+          title: jobFunction.job_function,
+          initialCategory: "relevant",
+          currentCategory: "relevant",
+          company: jobFunction.company_name,
+          reasoning: jobFunction.relevance_justification,
+        }))
+      case "ambiguous":
+        return needMoreInfoJobFunctions.map((jobFunction, index) => ({
+          id: `ambiguous-${index}`,
+          title: jobFunction.job_function,
+          initialCategory: "ambiguous",
+          currentCategory: "ambiguous",
+          company: jobFunction.company_name,
+          reasoning: jobFunction.relevance_justification,
+        }))
+      case "irrelevant":
+        return [] // Assuming no items initially in irrelevant category
+      default:
+        return []
+    }
+  }
+  
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+    // if (over && active.id) {
+    //   const activeItem = items.find((i) => i.id === active.id)
+    //   const overContainerId = over.id as BenchmarkCategory
 
-    if (over && active.id) {
-      const activeItem = items.find((i) => i.id === active.id)
-      const overContainerId = over.id as BenchmarkCategory
-
-      if (activeItem && activeItem.currentCategory !== overContainerId) {
-        const updatedItems = items.map((item) => {
-          if (item.id === active.id) {
-            return { ...item, currentCategory: overContainerId }
-          }
-          return item
-        })
-        setItems(updatedItems)
-      }
-    }
+    //   if (activeItem && activeItem.currentCategory !== overContainerId) {
+    //     const updatedItems = items.map((item) => {
+    //       if (item.id === active.id) {
+    //         return { ...item, currentCategory: overContainerId }
+    //       }
+    //       return item
+    //     })
+    //     setItems(updatedItems)
+    //   }
+    // }
   }
 
   return (
@@ -89,11 +126,11 @@ export default function Screen3_5BenchmarkReview({
         </div>
 
         <div className="flex-shrink-0 pt-4 mt-4 border-t border-custom-border">
-          <HybridFeedbackInput
+          {/* <HybridFeedbackInput
             mentionableItems={items}
             onUpdate={(content) => setFeedbackText(content)}
             key={benchmarkData.length}
-          />
+          /> */}
           <div className="flex items-center justify-between mt-4">
             <Button variant="link" onClick={onStartSourcing}>
               Skip & Start Sourcing

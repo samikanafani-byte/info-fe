@@ -26,6 +26,7 @@ import { ResizableDialog } from "@/components/resizable-dialog"
 import { produce } from "immer"
 import { ProjectState } from "@/types/project"
 import { StreamState } from "@/types/streamState"
+import { continueProject } from "@/services/projectService"
 
 
 const STEPS = ["Decode", "Companies", "Keywords", "Sourcing", "Review"]
@@ -247,15 +248,21 @@ export default function ExpertSearchPage() {
     }, 1500)
   }
 
-  const handleApproveKeywords = () => {
+  const handleApproveKeywords = async() => {
     setIsLoading(true)
     setLoadingText("AI is preparing a benchmark sample...")
-    setTimeout(() => {
+    try{
+
+      const projectState = await continueProject(project?.session_id || "")
+      setProject(projectState)
       updateActiveDecoding((draft) => {
         draft.step = 4
       })
+    }catch(error){
+      console.error("Error continuing project:", error)
+    }finally{
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   const handleStartFullSourcing = () => {
@@ -326,6 +333,8 @@ export default function ExpertSearchPage() {
         </div>
       )
     }
+    
+    
 
     if (!activeDecoding) {
       if (project) {
@@ -341,7 +350,7 @@ export default function ExpertSearchPage() {
       }
       return <Screen1BriefInput onStartAnalysis={handleStartAnalysis} />
     }
-
+    console.log("Rendering screen for status:", activeDecoding.status)
     switch (activeDecoding.status) {
       case "brief":
         return (
@@ -368,20 +377,21 @@ export default function ExpertSearchPage() {
           <Screen2_5ReviewCompanies
             sessionId={project?.session_id || ""}
             streamState={activeDecoding}
+            onApprove={handleApproveCompanies}
+            onBack={() => updateActiveDecoding((d) => (d.step = 2))}
+            onDataChange={(data) => updateStream(data)}
+          />
+        )
+      case "validation":
+        return (
+          <Screen3ReviewKeywords
+            sessionId={project?.session_id || ""}
+            streamState={activeDecoding}
             onApprove={handleApproveKeywords}
             onBack={() => updateActiveDecoding((d) => (d.step = 2))}
             onDataChange={(data) => updateStream(data)}
           />
         )
-      // case "validation":
-      //   return (
-      //     <Screen3ReviewKeywords
-      //       keywordData={}
-      //       onApprove={handleApproveKeywords}
-      //       onBack={() => updateActiveDecoding((d) => (d.step = 2))}
-      //       onDataChange={(data) => updateActiveDecoding((d) => (d.keywords = data))}
-      //     />
-      //   )
       // case 4:
       //   return (
       //     <Screen3_5BenchmarkReview
@@ -392,8 +402,16 @@ export default function ExpertSearchPage() {
       //     />
       //   )
       case "sourcing":
-        case "validation":
-        return <Screen4SourcingPipeline onViewResults={handleViewResults} />
+        return (
+          <Screen3_5BenchmarkReview
+            sessionId={project?.session_id || ""}
+            streamState={activeDecoding}
+            onStartSourcing={handleStartFullSourcing}
+            onRebenchmark={handleRebenchmark}
+          />
+        )
+        return <div>Screen for sourcing in progress...</div>
+        // return <Screen4SourcingPipeline onViewResults={handleViewResults} />
       // case 6:
       //   return (
       //     <Screen5ReviewShortlist
