@@ -247,6 +247,24 @@ export default function ExpertSearchPage() {
       setIsLoading(false)
     }, 1500)
   }
+  const getStepBasedOnStatus = (status: string) => {
+    switch (status) {
+      case "companies":
+        return 1
+      case "keywords":
+        return 2
+      case "validation":
+        return 3
+      case "sourcing":
+        return 4
+      case "review":
+        return 5
+      case "completed":
+        return 6
+      default:
+        return 1
+    }
+  }
 
   const handleApproveKeywords = async() => {
     setIsLoading(true)
@@ -258,6 +276,7 @@ export default function ExpertSearchPage() {
       updateActiveDecoding((draft) => {
         draft.step = 4
       })
+      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
     }catch(error){
       console.error("Error continuing project:", error)
     }finally{
@@ -265,16 +284,26 @@ export default function ExpertSearchPage() {
     }
   }
 
-  const handleStartFullSourcing = () => {
+  const handleStartFullSourcing = async () => {
     setIsLoading(true)
+
+
     setLoadingText("Starting full-scale sourcing...")
-    setTimeout(() => {
-      updateActiveDecoding((draft) => {
-        draft.step = 5
-        draft.status = "in-progress"
-      })
+    try{
+        //send the request to continue the project
+        const projectState = await continueProject(project?.session_id || "")
+        setProject(projectState)
+        updateActiveDecoding((draft) => {
+          draft.step = 6
+        })
+        setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+    }catch(error){
+      console.error("Error updating project:", error)
+    
+    }finally{
       setIsLoading(false)
-    }, 2000)
+    }
+
   }
 
   const handleRebenchmark = () => {
@@ -392,15 +421,7 @@ export default function ExpertSearchPage() {
             onDataChange={(data) => updateStream(data)}
           />
         )
-      // case 4:
-      //   return (
-      //     <Screen3_5BenchmarkReview
-      //       key={`${activeDecoding.id}-${activeDecoding.benchmarkRound}`}
-      //       benchmarkData={activeDecoding.benchmarkData}
-      //       onStartSourcing={handleStartFullSourcing}
-      //       onRebenchmark={handleRebenchmark}
-      //     />
-      //   )
+
       case "sourcing":
         return (
           <Screen3_5BenchmarkReview
@@ -410,17 +431,16 @@ export default function ExpertSearchPage() {
             onRebenchmark={handleRebenchmark}
           />
         )
-        return <div>Screen for sourcing in progress...</div>
-        // return <Screen4SourcingPipeline onViewResults={handleViewResults} />
-      // case 6:
-      //   return (
-      //     <Screen5ReviewShortlist
-      //       experts={activeDecoding.experts}
-      //       onStartNewSearch={() => {
-      //         setActiveDecodingId(null)
-      //       }}
-      //     />
-      //   )
+      case "completed":
+        return (
+          <Screen5ReviewShortlist
+            streamState={activeDecoding}
+            sessionId={project?.session_id || ""}
+            onStartNewSearch={() => {
+              setActiveDecoding(undefined)
+            }}
+          />
+        )
       default:
         return <Screen1BriefInput onStartAnalysis={handleStartAnalysis} />
     }
@@ -478,13 +498,13 @@ export default function ExpertSearchPage() {
               )}
             </div>
           </div>
-          {/* {activeDecoding && (
+          {activeDecoding && (
             <ProgressStepper
               steps={STEPS}
-              currentStep={activeDecoding.status}
+              currentStep={getStepBasedOnStatus(activeDecoding.status??"brief")}
               stepIndices={{ decode: 1, companies: 2, keywords: 3, sourcing: 4, review: 6 }}
             />
-          )} */}
+          )}
         </header>
         <main className="flex-grow p-4 overflow-y-auto @container/main">{renderContent()}</main>
       </ResizableDialog>

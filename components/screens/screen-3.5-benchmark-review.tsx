@@ -41,6 +41,9 @@ export default function Screen3_5BenchmarkReview({
   const needMoreInfoJobFunctions: NeedsMoreInfoExpert[] = newStreamState.needs_more_info_experts ?? []
 
 
+  
+  
+
   const getItemsForCategory = (category: BenchmarkCategory): JobTitleBenchmarkItem[] => {
     switch (category) {
       case "relevant":
@@ -136,9 +139,9 @@ export default function Screen3_5BenchmarkReview({
               Skip & Start Sourcing
             </Button>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" onClick={onRebenchmark}>
+              {/* <Button variant="outline" onClick={onRebenchmark}>
                 Benchmark More
-              </Button>
+              </Button> */}
               <Button onClick={onStartSourcing}>Apply & Start Full Sourcing</Button>
             </div>
           </div>

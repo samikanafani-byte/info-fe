@@ -27,11 +27,11 @@ export function ExpertCard({ expert, isShortlisted, onShortlist, onDismiss, onVi
               <p className="text-xs text-text-secondary">{expert.company}</p>
             </div>
             <Badge
-              variant={expert.score > 4.5 ? "default" : "secondary"}
+              variant={expert.score === "highly_relevant" ? "default" : "secondary"}
               className="flex items-center gap-1 text-primary bg-primary/10 border border-primary/20"
             >
               <Star className="h-3.5 w-3.5" />
-              <span className="font-semibold">{expert.score.toFixed(1)}</span>
+              <span className="font-semibold">{expert.score}</span>
             </Badge>
           </div>
           <div className="mt-3 flex justify-end space-x-2">

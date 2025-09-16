@@ -36,9 +36,9 @@ export interface Expert {
   name: string
   title: string
   company: string
-  score: number
+  score: string
   reasoningSummary: string
-  scoringBreakdown: {
+  scoringBreakdown?: {
     criteria: string
     weight: number
     score: number
@@ -180,7 +180,7 @@ export const initialExperts: Expert[] = [
     name: "Annette Black",
     title: "Global Head of Ocean Freight",
     company: "Maersk",
-    score: 4.8,
+    score: "King",
     reasoningSummary:
       "Excellent match. Direct experience at a primary target company with a highly relevant leadership title.",
     scoringBreakdown: [
@@ -215,7 +215,7 @@ export const initialExperts: Expert[] = [
     name: "Cameron Williamson",
     title: "Senior Trade Manager, APAC-EU",
     company: "CMA CGM",
-    score: 4.6,
+    score: "Strong",
     reasoningSummary: "Strong candidate. Title explicitly mentions the key trade lane (APAC-EU) and a target company.",
     scoringBreakdown: [
       {

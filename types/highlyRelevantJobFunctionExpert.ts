@@ -4,3 +4,5 @@ export interface HighlyRelevantJobFunctionExpert {
     company_name: string;
     relevance_justification: string;
 }
+
+

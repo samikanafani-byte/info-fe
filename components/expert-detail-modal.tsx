@@ -29,7 +29,7 @@ export function ExpertDetailModal({ expert, isOpen, onOpenChange }: ExpertDetail
           </div>
           <div>
             <h4 className="font-semibold text-text-primary mb-3">AI Scoring Breakdown</h4>
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               {expert.scoringBreakdown.map((item) => (
                 <ReasoningTooltip key={item.criteria} content={item.reason}>
                   <div className="p-3 rounded-md hover:bg-background-subtle cursor-help transition-colors">
@@ -48,12 +48,12 @@ export function ExpertDetailModal({ expert, isOpen, onOpenChange }: ExpertDetail
                   </div>
                 </ReasoningTooltip>
               ))}
-            </div>
+            </div> */}
             <div className="mt-4 pt-4 border-t border-custom-border flex justify-between items-center">
               <p className="font-semibold text-text-primary">Final Score</p>
               <Badge className="text-base flex items-center gap-1.5 py-1 px-3 bg-primary text-text-on-primary">
                 <Star className="h-4 w-4" />
-                {expert.score.toFixed(1)} / 5.0
+                {expert.score}
               </Badge>
             </div>
           </div>

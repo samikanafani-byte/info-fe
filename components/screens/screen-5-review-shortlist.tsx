@@ -5,16 +5,28 @@ import { Button } from "@/components/ui/button"
 import { ExpertCard } from "@/components/expert-card"
 import { ExpertDetailModal } from "@/components/expert-detail-modal"
 import type { Expert } from "@/lib/data"
+import { StreamState } from "@/types/streamState"
+import { convertHighlyRelevantJobFunctionExpertToExpert, convertRankedExpertsToExpert } from "@/types/expertState"
 
 interface Screen5ReviewShortlistProps {
-  experts: Expert[]
+  streamState: StreamState
+  sessionId: string
   onStartNewSearch: () => void
 }
 
-export default function Screen5ReviewShortlist({ experts, onStartNewSearch }: Screen5ReviewShortlistProps) {
+export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, sessionId }: Screen5ReviewShortlistProps) {
+
+
+
   const [shortlisted, setShortlisted] = useState<string[]>([])
   const [dismissed, setDismissed] = useState<string[]>([])
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
+  const highlyRelevant = streamState.experts_state?.highly_relevant_job_function_experts ?? []
+  const highlyRelevantExperts: Expert[] = highlyRelevant.map((item) => convertHighlyRelevantJobFunctionExpertToExpert(item))
+  const ranked = streamState.experts_state?.ranked_experts.results ?? [];
+  const rankedExperts: Expert[] = ranked ? ranked.map((item) => convertRankedExpertsToExpert(item)) : []
+  const experts: Expert[] = [...highlyRelevantExperts, ...rankedExperts]
+  
 
   const handleShortlist = (id: string) => {
     setShortlisted((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
@@ -27,6 +39,7 @@ export default function Screen5ReviewShortlist({ experts, onStartNewSearch }: Sc
   const handleViewDetails = (expert: Expert) => {
     setSelectedExpert(expert)
   }
+
 
   const visibleExperts = experts.filter((expert) => !dismissed.includes(expert.id))
 

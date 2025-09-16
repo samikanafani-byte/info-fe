@@ -1,4 +1,5 @@
 import { CompanyState } from "./companyState";
+import { ExpertState } from "./expertState";
 import { HighlyRelevantJobFunctionExpert } from "./highlyRelevantJobFunctionExpert";
 import { Keywords } from "./keywords";
 import { NeedsMoreInfoExpert } from "./NeedsMoreInfoExperts";
@@ -14,6 +15,7 @@ export interface StreamState {
     highly_relevant_job_function_experts?: HighlyRelevantJobFunctionExpert[];
     status?: string;
     needs_more_info_experts?: NeedsMoreInfoExpert[];
+    experts_state: ExpertState;
 
 }
 
