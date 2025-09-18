@@ -15,7 +15,9 @@ export function ExpertDetailModal({ expert, isOpen, onOpenChange }: ExpertDetail
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-w-[90vw] bg-background-main border-custom-border @container">
         <DialogHeader>
-          <DialogTitle className="text-xl text-text-primary">{expert.name}</DialogTitle>
+          <a href={`https://iqplatform.iqnetwork.co/new_expert.php?id=${expert.id}`} target="_blank">
+            <DialogTitle className="text-xl text-text-primary">{expert.name}</DialogTitle>
+          </a>
           <DialogDescription className="text-text-secondary">
             {expert.title} at {expert.company}
           </DialogDescription>

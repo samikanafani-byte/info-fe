@@ -8,7 +8,7 @@ import { ChevronRight, CheckCircle2, Loader, AlertCircle } from "lucide-react"
 import { ReasoningTooltip } from "./reasoning-tooltip"
 import { SearchStream } from "@/types/searchStream"
 import { StreamState } from "@/types/streamState"
-
+import Tooltip from '@mui/material/Tooltip';
 interface DecodingCardProps {
   
   stream: StreamState
@@ -73,7 +73,7 @@ export function DecodingCard({ stream, onSelect }: DecodingCardProps) {
   const statusInfo = getStatusInfo()
 
   return (
-    <ReasoningTooltip content={stream.search_stream.stream_summary} asChild={false}>
+    <Tooltip title={stream.search_stream.stream_summary} placement="right-start">
       <Card className="bg-background-main border-custom-border hover:shadow-custom focus:shadow-custom transition-shadow cursor-help">
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-base text-text-primary">{stream.search_stream.stream_name}</CardTitle>
@@ -109,6 +109,6 @@ export function DecodingCard({ stream, onSelect }: DecodingCardProps) {
           </div>
         </CardContent>
       </Card>
-    </ReasoningTooltip>
+    </Tooltip>
   )
 }

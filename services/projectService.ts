@@ -33,7 +33,7 @@ export const updateProject = async (session_id: string, stream_id: string,  upda
         return response.data;
     } catch (error) {
         console.error("Error updating project:", error);
-        throw error;
+        throw error; 
     }
 }
 

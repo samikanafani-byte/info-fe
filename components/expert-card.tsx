@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Star, UserPlus, UserMinus, FileText } from "lucide-react"
 import type { Expert } from "@/lib/data"
 import { ReasoningTooltip } from "./reasoning-tooltip"
-
+import Tooltip from '@mui/material/Tooltip';
 interface ExpertCardProps {
   expert: Expert
   isShortlisted: boolean
@@ -17,12 +17,12 @@ interface ExpertCardProps {
 
 export function ExpertCard({ expert, isShortlisted, onShortlist, onDismiss, onViewDetails }: ExpertCardProps) {
   return (
-    <ReasoningTooltip content={expert.reasoningSummary}>
+    <Tooltip title={expert.reasoningSummary} placement="right-start">
       <Card className="overflow-hidden cursor-help bg-background-main border-custom-border hover:shadow-custom focus:shadow-custom transition-shadow">
         <CardContent className="p-3">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-bold text-base text-text-primary">{expert.name}</h3>
+              <a href={`https://iqplatform.iqnetwork.co/new_expert.php?id=${expert.id}`} target="_blank"><h3 className="font-bold text-base text-text-primary">{expert.name}</h3></a>
               <p className="text-sm text-text-primary">{expert.title}</p>
               <p className="text-xs text-text-secondary">{expert.company}</p>
             </div>
@@ -50,6 +50,6 @@ export function ExpertCard({ expert, isShortlisted, onShortlist, onDismiss, onVi
           </div>
         </CardContent>
       </Card>
-    </ReasoningTooltip>
+    </Tooltip>
   )
 }

@@ -12,6 +12,7 @@ import { StreamState } from "@/types/streamState"
 import { set } from "date-fns"
 import { updateProject } from "@/services/projectService"
 import { ProjectState } from "@/types/project"
+import Tooltip from '@mui/material/Tooltip';
 
 interface Screen2ReviewBriefProps {
   session_id: string
@@ -134,11 +135,11 @@ export default function Screen2ReviewBrief({
               </div>
             </div>
           ) : (
-            <ReasoningTooltip content={id === "brief" ? streamState.search_stream.stream_summary : "This content is user-editable."}>
+            <Tooltip title={id === "brief" ? streamState.search_stream.stream_summary : "This content is user-editable."} placement="right-start">
               <p className="text-sm text-text-secondary whitespace-pre-wrap cursor-help border-b border-dashed border-gray-400 inline">
                 {content}
               </p>
-            </ReasoningTooltip>
+              </Tooltip>
           )}
         </AccordionContent>
       </AccordionItem>
@@ -159,7 +160,7 @@ export default function Screen2ReviewBrief({
           {renderEditableItem("value_chain_analysis", "Value Chain Analysis", streamState.search_stream.detailed_brief_decoding.value_chain_analysis)}
           {renderEditableItem("desired_viewpoint_node", "Desired Viewpoint/Node", streamState.search_stream.detailed_brief_decoding.desired_viewpoint_node)}
           {renderEditableItem("geography", "Geography", streamState.search_stream.detailed_brief_decoding.geography)}
-          {renderEditableItem("project_logistics", "Project Logistics", streamState.search_stream.detailed_brief_decoding.project_logistics)}
+        {renderEditableItem("project_logistics", "Project Logistics", streamState.search_stream.detailed_brief_decoding.project_logistics)}
           {/* <AccordionItem value="expertise"> */}
             {/* <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
               Map Needed Expertise

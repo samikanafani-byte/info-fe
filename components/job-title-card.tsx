@@ -1,5 +1,4 @@
-"use client"
-
+// inside JobTitleCard.tsx
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,6 +6,9 @@ import { GripVertical, RefreshCw } from "lucide-react"
 import type { JobTitleBenchmarkItem } from "@/lib/data"
 import { cn } from "@/lib/utils"
 import { ReasoningTooltip } from "./reasoning-tooltip"
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+
 
 interface JobTitleCardProps {
   item: JobTitleBenchmarkItem
@@ -23,35 +25,40 @@ export function JobTitleCard({ item }: JobTitleCardProps) {
 
   const wasCorrected = item.initialCategory !== item.currentCategory
 
+  // inside JobTitleCard.tsx
   return (
-    <ReasoningTooltip content={item.reasoning}>
-      <div ref={setNodeRef} style={style} className="cursor-help">
-        <Card
-          className={cn(
-            "shadow-sm bg-background-main rounded-md border-custom-border",
-            isDragging && "shadow-custom-lg",
+    <Tooltip title={item.reasoning} placement="right-start">
+      <Card
+        ref={setNodeRef}
+        style={style}
+        className={cn(
+          "shadow-sm bg-background-main rounded-md border-custom-border cursor-help",
+          isDragging && "shadow-custom-lg",
+        )}
+      >
+        <CardContent className="p-2 flex items-center gap-1">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab touch-none p-1 text-text-secondary hover:text-text-primary"
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
+          <div className="flex-grow">
+            <p className="text-sm font-bold text-text-primary leading-tight">{item.title}</p>
+            <p className="text-xs text-text-secondary">at {item.company}</p>
+          </div>
+          {wasCorrected && (
+            <div className="p-1 text-primary" title="You corrected this item">
+              <RefreshCw className="h-3.5 w-3.5" />
+            </div>
           )}
-        >
-          <CardContent className="p-2 flex items-center gap-1">
-            <div
-              {...attributes}
-              {...listeners}
-              className="cursor-grab touch-none p-1 text-text-secondary hover:text-text-primary"
-            >
-              <GripVertical className="h-5 w-5" />
-            </div>
-            <div className="flex-grow">
-              <p className="text-sm font-bold text-text-primary leading-tight">{item.title}</p>
-              <p className="text-xs text-text-secondary">at {item.company}</p>
-            </div>
-            {wasCorrected && (
-              <div className="p-1 text-primary" title="You corrected this item">
-                <RefreshCw className="h-3.5 w-3.5" />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </ReasoningTooltip>
+          {/* Remove this span as it's a static, non-Radix tooltip */}
+          {/* <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-sm bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition">
+          {item.reasoning}
+        </span> */}
+        </CardContent>
+      </Card>
+    </Tooltip>
   )
 }
