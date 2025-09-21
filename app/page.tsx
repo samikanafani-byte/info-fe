@@ -222,42 +222,51 @@ export default function ExpertSearchPage() {
     }, 1500)
   }
 
-  const handleApproveBrief = () => {
+  const handleApproveBrief = async () => {
     setIsLoading(true)
     setLoadingText("Preparing Company Review...")
-    setTimeout(() => {
+    try {
+      const projectState = await continueProject(project?.session_id || "")
+      setProject(projectState)
       updateActiveDecoding((draft) => {
         draft.step = 2
-        draft.companies = {
-          primary: draft.brief.companies.primary.map((c) => ({ ...c, isNew: false })),
-          secondary: draft.brief.companies.secondary.map((c) => ({ ...c, isNew: false })),
-        }
       })
+      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+    } catch (error) {
+      console.error("Error continuing project:", error)
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
-  const handleApproveCompanies = () => {
+  const handleApproveCompanies = async () => {
     setIsLoading(true)
+    
     setLoadingText("Generating Keywords...")
-    setTimeout(() => {
+    try{
+      const projectState = await continueProject(project?.session_id || "")
+      setProject(projectState)
       updateActiveDecoding((draft) => {
         draft.step = 3
       })
+      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+    }catch(error){
+      console.error("Error continuing project:", error)
+    }finally{
       setIsLoading(false)
-    }, 1500)
+    }
   }
   const getStepBasedOnStatus = (status: string) => {
     switch (status) {
-      case "companies":
+      case "decode":
         return 1
-      case "keywords":
+      case "companies":
         return 2
-      case "validation":
+      case "keywords":
         return 3
-      case "sourcing":
+      case "validation":
         return 4
-      case "review":
+      case "sourcing":
         return 5
       case "completed":
         return 6
@@ -332,26 +341,7 @@ export default function ExpertSearchPage() {
     }, 1000)
   }
 
-  const getCurrentNodeName = () => {
-    if (!activeDecoding) return "Brief Input"
-    switch (activeDecoding.status) {
-      
-      case "brief":
-        return "Brief"
-      case "companies":
-        return "Companies"
-      case "keywords":
-        return "Keywords"
-      case "sourcing":
-        return "Sourcing"
-      case "review":
-        return "Review"
-      case "completed":
-        return "Completed"
-      default:
-        return "Unknown"
-    }
-  }
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -381,7 +371,7 @@ export default function ExpertSearchPage() {
     }
     console.log("Rendering screen for status:", activeDecoding.status)
     switch (activeDecoding.status) {
-      case "brief":
+      case "decode":
         return (
           <Screen2ReviewBrief
             session_id={project?.session_id || ""}
@@ -392,16 +382,6 @@ export default function ExpertSearchPage() {
           />
         )
       case "companies":
-        return(
-          <Screen2ReviewBrief
-            session_id={project?.session_id || ""}
-            streamState={activeDecoding}
-            onApprove={handleApproveBrief}
-            onReanalyze={() => { }}
-            onDataChange={(data) => updateStream(data)}
-          />
-        )
-      case "keywords":
         return (
           <Screen2_5ReviewCompanies
             sessionId={project?.session_id || ""}
@@ -411,7 +391,7 @@ export default function ExpertSearchPage() {
             onDataChange={(data) => updateStream(data)}
           />
         )
-      case "validation":
+      case "keywords":
         return (
           <Screen3ReviewKeywords
             sessionId={project?.session_id || ""}
@@ -487,7 +467,32 @@ export default function ExpertSearchPage() {
                 </Button>
               )}
               <h1 className="text-xl font-bold text-text-primary">
-                {activeDecoding ? activeDecoding.search_stream.stream_name : "AI Expert Search"}
+                <span className="flex items-center gap-2">
+                  <span>{activeDecoding!=null? (activeDecoding?.search_stream.stream_name + "-"): ""}{project?.session_id || "New Project"}</span>
+                  {project?.session_id && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0"
+                      title="Copy Session ID"
+                      onClick={() => {
+                        navigator.clipboard.writeText(project.session_id)
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 text-muted-foreground"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" />
+                        <rect x="3" y="3" width="13" height="13" rx="2" stroke="currentColor" />
+                      </svg>
+                    </Button>
+                  )}
+                </span>
               </h1>
             </div>
             <div className="flex items-center gap-2">

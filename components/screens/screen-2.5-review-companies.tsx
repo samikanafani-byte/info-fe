@@ -50,7 +50,7 @@ streamState,
     }
   }
   const handleApprove = async () => {
-    newStreamState.status = "validation"
+    newStreamState.status = "keywords"
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     onDataChange(newResp)
     onApprove()
