@@ -28,6 +28,8 @@ import { ProjectState } from "@/types/project"
 import { StreamState } from "@/types/streamState"
 import { continueProject } from "@/services/projectService"
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const STEPS = ["Decode", "Companies", "Keywords", "Sourcing", "Review"]
 
@@ -473,10 +475,14 @@ export default function ExpertSearchPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 p-0"
+                      className="h-12 w-12 p-0"
                       title="Copy Session ID"
                       onClick={() => {
                         navigator.clipboard.writeText(project.session_id)
+                        toast.success('Successfully copied to clipboard!', {
+                          position: 'top-right',
+                          autoClose: 2000,
+                        });
                       }}
                     >
                       <svg
@@ -513,6 +519,18 @@ export default function ExpertSearchPage() {
         </header>
         <main className="flex-grow p-4 overflow-y-auto @container/main">{renderContent()}</main>
       </ResizableDialog>
+
+      <ToastContainer
+        position="top-right" // You can change this
+        autoClose={2000} // Toasts will auto-close after 2 seconds
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   )
 }

@@ -13,6 +13,7 @@ import { StreamState } from "@/types/streamState"
 import { ProjectState } from "@/types/project"
 import { KeywordItem, Keywords } from "@/types/keywords"
 import { updateProject } from "@/services/projectService"
+import KeyWordComponent from "../ui/keywordComponent"
 
 interface Screen3ReviewKeywordsProps {
   streamState: StreamState
@@ -38,15 +39,26 @@ export default function Screen3ReviewKeywords({
   const seniorityKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "seniority") ?? []
 
 
-  const handleRemoveKeyword = async (category: string, keywordToRemove: string) => {
+  const handleRemoveKeyword = async (category: string, keywordToRemove: string, componentKeyword?: string) => {
     if (!newStreamState.keywords) return
     const keyWordList: KeywordItem[] =[];
     // loop over the keywords to find the right category
     for (let i = 0; i < newStreamState.keywords.list_of_keywords.length; i++) {
-      if ((newStreamState.keywords.list_of_keywords[i].category !== category) ||( newStreamState.keywords.list_of_keywords[i].keyword !== keywordToRemove)) {
+      if ((newStreamState.keywords.list_of_keywords[i].category !== category) || (newStreamState.keywords.list_of_keywords[i].keyword !== keywordToRemove)) {
         keyWordList.push(newStreamState.keywords.list_of_keywords[i])    
+      } else if (newStreamState.keywords.list_of_keywords[i].category === category && newStreamState.keywords.list_of_keywords[i].keyword === keywordToRemove && componentKeyword){
+        // remove the component keyword from the list
+        const updatedComponentKeywords = newStreamState.keywords.list_of_keywords[i].component_keywords.filter((compKeyword) => compKeyword !== componentKeyword)
+        if (updatedComponentKeywords.length > 0){
+          const updatedKeywordItem: KeywordItem = {
+            ...newStreamState.keywords.list_of_keywords[i],
+            component_keywords: updatedComponentKeywords
+          }
+          keyWordList.push(updatedKeywordItem)
+        }
       }
     }
+    
     newStreamState.keywords.list_of_keywords = keyWordList
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     onDataChange(newResp)
@@ -68,7 +80,7 @@ export default function Screen3ReviewKeywords({
       viewpoint: "Viewpoint 3: Operators",
       proof: "Manually added keyword",
       component_keywords: [
-        newKeyWord.trim()
+        
       ],
     }
     newStreamState.keywords.list_of_keywords.push(newKeywordItem)
@@ -106,18 +118,25 @@ export default function Screen3ReviewKeywords({
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="flex flex-wrap gap-2 mb-3">
-            {keyWordItems.map((keyword) => (
-              <ReasoningTooltip key={keyword.keyword} content={keyword.proof}>
-                <Badge variant="secondary" className="text-sm py-1 cursor-help bg-background-subtle text-text-primary">
-                  {keyword.keyword}
-                  <button
-                    onClick={() => handleRemoveKeyword(keyword.category, keyword.keyword)}
-                    className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5 text-text-secondary"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              </ReasoningTooltip>
+            {keyWordItems.map((keyword: KeywordItem) => (
+              <KeyWordComponent
+                key={keyword.keyword}
+                category={category}
+                keyword={keyword}
+                onRemove={handleRemoveKeyword}
+              />
+
+              // <ReasoningTooltip key={keyword.keyword} content={keyword.proof}>
+              //   <Badge variant="default" className="text-sm py-1 cursor-help bg-secondary text-text-primary">
+              //     {keyword.keyword}
+              //     <button
+              //       onClick={() => handleRemoveKeyword(keyword.category, keyword.keyword)}
+              //       className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5 text-text-secondary"
+              //     >
+              //       <X className="h-3 w-3" />
+              //     </button>
+              //   </Badge>
+              // </ReasoningTooltip>
             ))}
           </div>
           <div className="flex items-center gap-2">
