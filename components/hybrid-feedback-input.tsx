@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button"
 import { Maximize, Minimize, Send } from "lucide-react"
 import { ReasoningTooltip } from "./reasoning-tooltip"
 import "./tiptap-styles.css"
+import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 
 interface HybridFeedbackInputProps {
-  mentionableItems: JobTitleBenchmarkItem[]
+  mentionableItems: JobTitleBenchmark[]
   onUpdate: (content: string) => void
   onSubmit: (content: string) => void
   // Add an optional prop to expose the clear function to the parent

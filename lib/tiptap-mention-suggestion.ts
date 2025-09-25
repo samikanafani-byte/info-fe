@@ -3,8 +3,9 @@ import tippy from "tippy.js"
 import { MentionList } from "@/components/mention-list"
 import type { JobTitleBenchmarkItem } from "./data"
 import type { DecodingProcess } from "./data"
+import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 
-export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingProcess)[]) => ({
+export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingProcess | JobTitleBenchmark)[]) => ({
   items: ({ query }: { query: string }) => {
     if (!mentionableItems || mentionableItems.length === 0) {
       return []
@@ -12,11 +13,12 @@ export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingPr
 
     // Check the type of the first item to determine search logic
     const isJobItem = "title" in mentionableItems[0] && "company" in mentionableItems[0]
+    
 
     return mentionableItems
       .filter((item) => {
         const searchStr = isJobItem
-          ? `${(item as JobTitleBenchmarkItem).title} ${(item as JobTitleBenchmarkItem).company}`.toLowerCase()
+          ? `${(item as JobTitleBenchmark).company_job_function.job_function} ${(item as JobTitleBenchmark).company_job_function.company_name}`.toLowerCase()
           : `${(item as DecodingProcess).name}`.toLowerCase()
         return searchStr.includes(query.toLowerCase())
       })

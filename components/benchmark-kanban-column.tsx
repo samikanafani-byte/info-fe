@@ -41,11 +41,11 @@ export function BenchmarkKanbanColumn({ id, title, items }: BenchmarkKanbanColum
       <div className="p-2 flex-grow overflow-y-auto">
         {items.length > 0 ? (
           <div className="space-y-2">
-            <SortableContext items={items} strategy={verticalListSortingStrategy}>
-              {items.map((item) => (
+            {/* <SortableContext items={items} strategy={verticalListSortingStrategy}> */}
+              {/* {items.map((item) => (
                 <JobTitleCard key={item.id} item={item} />
-              ))}
-            </SortableContext>
+              ))} */}
+            {/* </SortableContext> */}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-center text-xs text-text-secondary p-4">

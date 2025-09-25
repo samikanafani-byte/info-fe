@@ -1,64 +1,68 @@
-// inside JobTitleCard.tsx
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { Card, CardContent } from "@/components/ui/card"
-import { GripVertical, RefreshCw } from "lucide-react"
-import type { JobTitleBenchmarkItem } from "@/lib/data"
-import { cn } from "@/lib/utils"
-import { ReasoningTooltip } from "./reasoning-tooltip"
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
+import React, { CSSProperties } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+import { JobTitleBenchmark } from '@/types/benchMarkTitles';
 
 
 interface JobTitleCardProps {
-  item: JobTitleBenchmarkItem
+  item: JobTitleBenchmark;
 }
+const getCategoryName = (category: string) => {
+  switch (category) {
+    case 'highly_relevant':
+      return 'Highly Relevant';
+    case 'needs_more_info':
+      return 'Needs More Info';
+    case 'definitely_not_relevant':
+      return 'Definitely Not Relevant';
+    default:
+      return category;
+  }
+}
+export const JobTitleCard: React.FC<JobTitleCardProps> = ({ item }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.benchmark_title_id });
 
-export function JobTitleCard({ item }: JobTitleCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
-
-  const style = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 10 : undefined,
-  }
+    // Add a slight tilt and shadow when dragging for better visual feedback
+    zIndex: isDragging ? 10 : 0,
+    opacity: isDragging ? 0.5 : 1,
+    boxShadow: isDragging ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' : 'none',
+  };
 
-  const wasCorrected = item.initialCategory !== item.currentCategory
-
-  // inside JobTitleCard.tsx
   return (
-    <Tooltip title={item.reasoning} placement="right-start">
-      <Card
-        ref={setNodeRef}
-        style={style}
-        className={cn(
-          "shadow-sm bg-background-main rounded-md border-custom-border cursor-help",
-          isDragging && "shadow-custom-lg",
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="p-4 mb-3 bg-white rounded-lg shadow-md border border-gray-200 cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow duration-150"
+    >
+      <p className="font-bold text-lg text-gray-800">{item.company_job_function.job_function}</p>
+      <p className="text-sm text-blue-600">{item.company_job_function.company_name}</p>
+      <p className="text-xs mt-1 text-gray-500 line-clamp-2">
+        Reasoning: {item.relevance_justification}
+      </p>
+      <div className="mt-2 flex justify-between items-center text-xs">
+        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+          Initial: {getCategoryName(item.ai_category)}
+        </span>
+        {item.user_category && (
+          <span className="px-2 py-0.5 bg-indigo-500 text-white rounded-full">
+            Current: {getCategoryName(item.user_category)}
+          </span>
         )}
-      >
-        <CardContent className="p-2 flex items-center gap-1">
-          <div
-            {...attributes}
-            {...listeners}
-            className="cursor-grab touch-none p-1 text-text-secondary hover:text-text-primary"
-          >
-            <GripVertical className="h-5 w-5" />
-          </div>
-          <div className="flex-grow">
-            <p className="text-sm font-bold text-text-primary leading-tight">{item.title}</p>
-            <p className="text-xs text-text-secondary">at {item.company}</p>
-          </div>
-          {wasCorrected && (
-            <div className="p-1 text-primary" title="You corrected this item">
-              <RefreshCw className="h-3.5 w-3.5" />
-            </div>
-          )}
-          {/* Remove this span as it's a static, non-Radix tooltip */}
-          {/* <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-sm bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition">
-          {item.reasoning}
-        </span> */}
-        </CardContent>
-      </Card>
-    </Tooltip>
-  )
-}
+        
+      </div>
+    </div>
+  );
+};
