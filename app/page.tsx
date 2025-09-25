@@ -20,7 +20,7 @@ import {
   secondBenchmarkData,
   type DecodingProcess,
 } from "@/lib/data"
-import Screen3_5BenchmarkReview from "@/components/screens/screen-3.5-benchmark-review"
+import Screen3_5BenchmarkReview from "@/components/screens/screen-5-sourcing"
 import { cn } from "@/lib/utils"
 import { ResizableDialog } from "@/components/resizable-dialog"
 import { produce } from "immer"
@@ -29,9 +29,11 @@ import { StreamState } from "@/types/streamState"
 import { continueProject } from "@/services/projectService"
 
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Screen5_Sourcing from "@/components/screens/screen-5-sourcing"
+import Screen4_BenchmarkReview from "@/components/screens/screen-4-benchmark-review"
 
-const STEPS = ["Decode", "Companies", "Keywords", "Sourcing", "Review"]
+
+const STEPS = ["Decode", "Companies", "Keywords", "Benchmarking", "Sourcing", "Review"]
 
 // Mock data for prompt management
 
@@ -249,7 +251,24 @@ export default function ExpertSearchPage() {
       const projectState = await continueProject(project?.session_id || "")
       setProject(projectState)
       updateActiveDecoding((draft) => {
-        draft.step = 3
+        draft.step = 5
+      })
+      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+    }catch(error){
+      console.error("Error continuing project:", error)
+    }finally{
+      setIsLoading(false)
+    }
+  }
+
+  const handleApproveBenchmarkTitles = async () => {
+    setIsLoading(true)
+    setLoadingText("Preparing Benchmark Profiles...")
+    try{
+      const projectState = await continueProject(project?.session_id || "")
+      setProject(projectState)
+      updateActiveDecoding((draft) => {
+        draft.step = 4
       })
       setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
     }catch(error){
@@ -266,12 +285,16 @@ export default function ExpertSearchPage() {
         return 2
       case "keywords":
         return 3
-      case "validation":
+      case "benchmarking_titles":
         return 4
-      case "sourcing":
+      case "benchmarking_profiles":
         return 5
-      case "completed":
+      case "validation":
         return 6
+      case "sourcing":
+        return 7
+      case "completed":
+        return 8
       default:
         return 1
     }
@@ -403,10 +426,29 @@ export default function ExpertSearchPage() {
             onDataChange={(data) => updateStream(data)}
           />
         )
+      case "benchmarking_titles":
+        return <Screen4_BenchmarkReview 
+          sessionId={project?.session_id || ""}
+          streamState={activeDecoding}
+          onStartSourcing={() => {
+            handleApproveBenchmarkTitles()
+          }}
+          onNext={() => {}}
+          onRebenchmark={() => {}}
+        />
+      case "benchmarking_profiles":
+        return <Screen4_BenchmarkReview
+          sessionId={project?.session_id || ""}
+          streamState={activeDecoding}
+          onStartSourcing={() => { 
 
+          }}
+          onNext={() => { }}
+          onRebenchmark={() => { }}
+        />
       case "sourcing":
         return (
-          <Screen3_5BenchmarkReview
+          <Screen5_Sourcing
             sessionId={project?.session_id || ""}
             streamState={activeDecoding}
             onStartSourcing={handleStartFullSourcing}
@@ -512,8 +554,8 @@ export default function ExpertSearchPage() {
           {activeDecoding && (
             <ProgressStepper
               steps={STEPS}
-              currentStep={getStepBasedOnStatus(activeDecoding.status??"brief")}
-              stepIndices={{ decode: 1, companies: 2, keywords: 3, sourcing: 4, review: 6 }}
+              currentStep={getStepBasedOnStatus(activeDecoding.status ?? "brief")}
+              stepIndices={{ decode: 1, companies: 2, keywords: 3, benchmarking: 4, sourcing: 5, review: 6 }}
             />
           )}
         </header>

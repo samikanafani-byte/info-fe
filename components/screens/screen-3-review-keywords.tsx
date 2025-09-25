@@ -158,7 +158,7 @@ export default function Screen3ReviewKeywords({
 
   const handleApprove= async () => {
     // handle the approval
-    newStreamState.status = "validation"
+    newStreamState.status = "benchmarking_titles"
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     // send a request to continue the company check
     

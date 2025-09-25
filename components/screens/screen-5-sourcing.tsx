@@ -13,7 +13,7 @@ import { HighlyRelevantJobFunctionExpert } from "@/types/highlyRelevantJobFuncti
 import { NeedsMoreInfoExpert } from "@/types/NeedsMoreInfoExperts"
 
 
-interface Screen3_5BenchmarkReviewProps {
+interface Screen5_SourcingProps {
   sessionId: string, 
   streamState: StreamState,
   onStartSourcing: () => void
@@ -26,12 +26,12 @@ const CATEGORIES = [
   { id: "irrelevant", title: "❌ Not Relevant" },
 ] as const
 
-export default function Screen3_5BenchmarkReview({
+export default function Screen5_Sourcing({
   sessionId,
   streamState,
   onStartSourcing,
   onRebenchmark,
-}: Screen3_5BenchmarkReviewProps) {
+}: Screen5_SourcingProps) {
 
   
   const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)

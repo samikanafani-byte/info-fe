@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import type { JobTitleBenchmarkItem, BenchmarkCategory } from "@/lib/data"
 
 interface DroppableAccordionItemProps {
-  id: BenchmarkCategory
+  id: string
   title: string
   items: JobTitleBenchmarkItem[]
 }

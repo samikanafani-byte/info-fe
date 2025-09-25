@@ -8,7 +8,7 @@ import type { JobTitleBenchmarkItem, BenchmarkCategory } from "@/lib/data"
 import { Badge } from "./ui/badge"
 
 interface BenchmarkKanbanColumnProps {
-  id: BenchmarkCategory
+  id: string
   title: string
   items: JobTitleBenchmarkItem[]
 }

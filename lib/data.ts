@@ -55,8 +55,8 @@ export interface JobTitleBenchmarkItem {
   id: string
   title: string
   company: string
-  initialCategory: BenchmarkCategory
-  currentCategory: BenchmarkCategory
+  initialCategory: string
+  currentCategory: string
   reasoning: string
 }
 
