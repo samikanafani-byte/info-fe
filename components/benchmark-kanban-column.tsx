@@ -6,11 +6,12 @@ import { JobTitleCard } from "./job-title-card"
 import { cn } from "@/lib/utils"
 import type { JobTitleBenchmarkItem, BenchmarkCategory } from "@/lib/data"
 import { Badge } from "./ui/badge"
+import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 
 interface BenchmarkKanbanColumnProps {
   id: string
   title: string
-  items: JobTitleBenchmarkItem[]
+  items: JobTitleBenchmark[]
 }
 
 export function BenchmarkKanbanColumn({ id, title, items }: BenchmarkKanbanColumnProps) {
@@ -42,9 +43,9 @@ export function BenchmarkKanbanColumn({ id, title, items }: BenchmarkKanbanColum
         {items.length > 0 ? (
           <div className="space-y-2">
             {/* <SortableContext items={items} strategy={verticalListSortingStrategy}> */}
-              {/* {items.map((item) => (
-                <JobTitleCard key={item.id} item={item} />
-              ))} */}
+              {items.map((item) => (
+                <JobTitleCard key={item.benchmark_title_id} item={item} />
+              ))}
             {/* </SortableContext> */}
           </div>
         ) : (

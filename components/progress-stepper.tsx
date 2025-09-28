@@ -12,7 +12,7 @@ export default function ProgressStepper({ steps, currentStep, stepIndices }: Pro
       if (currentStep === stepIndices.benchmarking) {
         return "Benchmark\n(1/2: Titles)"
       }
-      if (currentStep > stepIndices.benchmarking) {
+      else{
         return "Benchmark\n(2/2: Profiles)"
       }
     }

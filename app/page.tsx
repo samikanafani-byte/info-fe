@@ -31,6 +31,7 @@ import { continueProject } from "@/services/projectService"
 import { ToastContainer, toast } from 'react-toastify';
 import Screen5_Sourcing from "@/components/screens/screen-5-sourcing"
 import Screen4_BenchmarkReview from "@/components/screens/screen-4-benchmark-review"
+import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchmark-profiles"
 
 
 const STEPS = ["Decode", "Companies", "Keywords", "Benchmarking", "Sourcing", "Review"]
@@ -277,6 +278,23 @@ export default function ExpertSearchPage() {
       setIsLoading(false)
     }
   }
+
+  const handleApproveExperts = async () => {
+    setIsLoading(true)
+    setLoadingText("Starting the sourcing process...")
+    try {
+      const projectState = await continueProject(project?.session_id || "")
+      setProject(projectState)
+      updateActiveDecoding((draft) => {
+        draft.step = 4
+      })
+      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+    } catch (error) {
+      console.error("Error continuing project:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
   const getStepBasedOnStatus = (status: string) => {
     switch (status) {
       case "decode":
@@ -288,7 +306,7 @@ export default function ExpertSearchPage() {
       case "benchmarking_titles":
         return 4
       case "benchmarking_profiles":
-        return 5
+        return 4
       case "validation":
         return 6
       case "sourcing":
@@ -437,11 +455,11 @@ export default function ExpertSearchPage() {
           onRebenchmark={() => {}}
         />
       case "benchmarking_profiles":
-        return <Screen4_BenchmarkReview
+        return <Screen4_5_BenchmarkProfiles
           sessionId={project?.session_id || ""}
           streamState={activeDecoding}
           onStartSourcing={() => { 
-
+            handleApproveExperts()
           }}
           onNext={() => { }}
           onRebenchmark={() => { }}

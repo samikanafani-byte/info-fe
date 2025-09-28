@@ -3,26 +3,28 @@ import tippy from "tippy.js"
 import { MentionList } from "@/components/mention-list"
 import type { JobTitleBenchmarkItem } from "./data"
 import type { DecodingProcess } from "./data"
-import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 
-export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingProcess | JobTitleBenchmark)[]) => ({
+export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingProcess)[]) => ({
   items: ({ query }: { query: string }) => {
+    console.log("Mentionable items:", mentionableItems)
+    console.log("Query:", query)
     if (!mentionableItems || mentionableItems.length === 0) {
       return []
     }
 
     // Check the type of the first item to determine search logic
     const isJobItem = "title" in mentionableItems[0] && "company" in mentionableItems[0]
-    
 
-    return mentionableItems
+    const returnItems =  mentionableItems
       .filter((item) => {
         const searchStr = isJobItem
-          ? `${(item as JobTitleBenchmark).company_job_function.job_function} ${(item as JobTitleBenchmark).company_job_function.company_name}`.toLowerCase()
+          ? `${(item as JobTitleBenchmarkItem).title} ${(item as JobTitleBenchmarkItem).company}`.toLowerCase()
           : `${(item as DecodingProcess).name}`.toLowerCase()
         return searchStr.includes(query.toLowerCase())
       })
       .slice(0, 5)
+    console.log("Filtered items for query", query, returnItems)
+    return returnItems
   },
 
   render: () => {

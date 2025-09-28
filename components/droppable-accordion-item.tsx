@@ -4,14 +4,16 @@ import { useDroppable } from "@dnd-kit/core"
 import { JobTitleCard } from "./job-title-card"
 import { cn } from "@/lib/utils"
 import type { JobTitleBenchmarkItem } from "@/lib/data"
+import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 
 interface DroppableAccordionItemProps {
   id: string
   title: string
-  items: JobTitleBenchmarkItem[]
+  items: JobTitleBenchmark[]
+  onChangeCategory?: (itemId: string, newCategory: string) => void
 }
 
-export function DroppableAccordionItem({ id, title, items }: DroppableAccordionItemProps) {
+export function DroppableAccordionItem({ id, title, items, onChangeCategory }: DroppableAccordionItemProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: "container", containerId: id },
@@ -44,9 +46,14 @@ export function DroppableAccordionItem({ id, title, items }: DroppableAccordionI
       >
         {items.length > 0 ? (
           <div className="space-y-2">
-            {/* {items.map((item) => (
-              <JobTitleCard key={item.id} item={item} />
-            ))} */}
+            {items.map((item) => (
+              <JobTitleCard key={item.benchmark_title_id} item={item} onChangeCategory={(newCategory) => {
+                if (onChangeCategory) {
+                  console.log("Changing category of", item.benchmark_title_id, "to", newCategory)
+                  onChangeCategory(item.benchmark_title_id, newCategory)
+                }
+              }} />
+            ))}
           </div>
         ) : (
           <div className="text-center text-xs text-text-secondary py-4">Drop items here</div>

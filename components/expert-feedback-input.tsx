@@ -6,20 +6,22 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
 import Mention from "@tiptap/extension-mention"
-import { suggestion } from "@/lib/tiptap-mention-suggestion"
+
 import type { JobTitleBenchmarkItem } from "@/lib/data"
 import { Button } from "@/components/ui/button"
-import { Maximize, Minimize, Send } from "lucide-react"
+import { Send } from "lucide-react"
 import { ReasoningTooltip } from "./reasoning-tooltip"
 import "./tiptap-styles.css"
+import { expertSuggestion } from "@/lib/tiptap-mention-suggestion-expert"
+import { RankedExpert } from "@/types/rankedExpert"
 
-interface HybridFeedbackInputProps {
-  mentionableItems: JobTitleBenchmarkItem[]
+interface ExpertHybridFeedbackInputProps {
+  mentionableItems: RankedExpert[]
   onUpdate: (content: string) => void
   onSubmit?: (content: string) => void 
 }
 
-export function HybridFeedbackInput({ mentionableItems, onUpdate, onSubmit }: HybridFeedbackInputProps) {
+export function ExpertHybridFeedbackInput({ mentionableItems, onUpdate, onSubmit }: ExpertHybridFeedbackInputProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [textAreaContent, setTextAreaContent] = useState("")
 
@@ -27,13 +29,13 @@ export function HybridFeedbackInput({ mentionableItems, onUpdate, onSubmit }: Hy
     extensions: [
       StarterKit,
       Placeholder.configure({
-        placeholder: "Add a note or use '@' to reference...",
+        placeholder: "Add a note or use '@' to reference experts...",
       }),
       Mention.configure({
         HTMLAttributes: {
           class: "mention",
         },
-        suggestion: suggestion(mentionableItems),
+        suggestion: expertSuggestion(mentionableItems),
       }),
     ],
     content: "",

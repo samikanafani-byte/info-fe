@@ -11,6 +11,7 @@ import { HybridFeedbackInput } from "@/components/hybrid-feedback-input"
 import { StreamState } from "@/types/streamState"
 import { HighlyRelevantJobFunctionExpert } from "@/types/highlyRelevantJobFunctionExpert"
 import { NeedsMoreInfoExpert } from "@/types/NeedsMoreInfoExperts"
+import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 
 
 interface Screen5_SourcingProps {
@@ -44,26 +45,30 @@ export default function Screen5_Sourcing({
   
   
 
-  const getItemsForCategory = (category: BenchmarkCategory): JobTitleBenchmarkItem[] => {
+  const getItemsForCategory = (category: BenchmarkCategory): JobTitleBenchmark[] => {
     switch (category) {
       case "relevant":
         return highlyRelevantJobFunctions.map((jobFunction, index) => ({
-          id: `relevant-${index}`,
-          title: jobFunction.job_function,
-          initialCategory: "relevant",
-          currentCategory: "relevant",
-          company: jobFunction.company_name,
-          reasoning: jobFunction.relevance_justification,
-        }))
+          benchmark_title_id: `relevant-${index}`,
+          ai_category: "highly_relevant",
+          user_category: "highly_relevant",
+          company_job_function: {
+            company_name: jobFunction.company_name,
+            job_function: jobFunction.job_function,
+          },
+          relevance_justification: jobFunction.relevance_justification,
+        })) 
       case "ambiguous":
         return needMoreInfoJobFunctions.map((jobFunction, index) => ({
-          id: `ambiguous-${index}`,
-          title: jobFunction.job_function,
-          initialCategory: "ambiguous",
-          currentCategory: "ambiguous",
-          company: jobFunction.company_name,
-          reasoning: jobFunction.relevance_justification,
-        }))
+          benchmark_title_id: `needs_more_info-${index}`,
+          ai_category: "needs_more_info",
+          user_category: "needs_more_info",
+          company_job_function: {
+            company_name: jobFunction.company_name,
+            job_function: jobFunction.job_function,
+          },
+          relevance_justification: jobFunction.relevance_justification,
+        })) 
       case "irrelevant":
         return [] // Assuming no items initially in irrelevant category
       default:
@@ -74,20 +79,7 @@ export default function Screen5_Sourcing({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    // if (over && active.id) {
-    //   const activeItem = items.find((i) => i.id === active.id)
-    //   const overContainerId = over.id as BenchmarkCategory
-
-    //   if (activeItem && activeItem.currentCategory !== overContainerId) {
-    //     const updatedItems = items.map((item) => {
-    //       if (item.id === active.id) {
-    //         return { ...item, currentCategory: overContainerId }
-    //       }
-    //       return item
-    //     })
-    //     setItems(updatedItems)
-    //   }
-    // }
+    
   }
 
   return (
@@ -95,7 +87,7 @@ export default function Screen5_Sourcing({
       <div className="flex flex-col h-full">
         <div className="flex-shrink-0">
           <p className="text-sm text-text-secondary mb-4">
-            Drag job titles to correct the AI, and use '@' to reference them in your feedback below.
+            View the List of job titles obtained based on the data you provided and AI analysis.
           </p>
         </div>
 
