@@ -1,3 +1,4 @@
+import { BenchMarkState } from "./benchMarkState";
 import { CompanyState } from "./companyState";
 import { ExpertState } from "./expertState";
 import { HighlyRelevantJobFunctionExpert } from "./highlyRelevantJobFunctionExpert";
@@ -16,6 +17,7 @@ export interface StreamState {
     status?: string;
     needs_more_info_experts?: NeedsMoreInfoExpert[];
     experts_state: ExpertState;
+    benchmark_state?: BenchMarkState;
 
 }
 

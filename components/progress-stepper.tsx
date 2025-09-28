@@ -8,12 +8,12 @@ interface ProgressStepperProps {
 
 export default function ProgressStepper({ steps, currentStep, stepIndices }: ProgressStepperProps) {
   const getStepLabel = (stepName: string) => {
-    if (stepName.toLowerCase() === "sourcing") {
-      if (currentStep === stepIndices.sourcing) {
-        return "Sourcing\n(1/2: Benchmark)"
+    if (stepName.toLowerCase() === "benchmarking") {
+      if (currentStep === stepIndices.benchmarking) {
+        return "Benchmark\n(1/2: Titles)"
       }
-      if (currentStep > stepIndices.sourcing) {
-        return "Sourcing\n(2/2: Processing)"
+      else{
+        return "Benchmark\n(2/2: Profiles)"
       }
     }
     return stepName

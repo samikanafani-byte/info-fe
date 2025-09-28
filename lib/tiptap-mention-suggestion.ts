@@ -6,6 +6,8 @@ import type { DecodingProcess } from "./data"
 
 export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingProcess)[]) => ({
   items: ({ query }: { query: string }) => {
+    console.log("Mentionable items:", mentionableItems)
+    console.log("Query:", query)
     if (!mentionableItems || mentionableItems.length === 0) {
       return []
     }
@@ -13,7 +15,7 @@ export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingPr
     // Check the type of the first item to determine search logic
     const isJobItem = "title" in mentionableItems[0] && "company" in mentionableItems[0]
 
-    return mentionableItems
+    const returnItems =  mentionableItems
       .filter((item) => {
         const searchStr = isJobItem
           ? `${(item as JobTitleBenchmarkItem).title} ${(item as JobTitleBenchmarkItem).company}`.toLowerCase()
@@ -21,6 +23,8 @@ export const suggestion = (mentionableItems: (JobTitleBenchmarkItem | DecodingPr
         return searchStr.includes(query.toLowerCase())
       })
       .slice(0, 5)
+    console.log("Filtered items for query", query, returnItems)
+    return returnItems
   },
 
   render: () => {

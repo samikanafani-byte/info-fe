@@ -8,15 +8,16 @@ import { cn } from "@/lib/utils"
 
 import Tooltip from '@mui/material/Tooltip';
 import { JobTitleBenchmark } from "@/types/benchMarkTitles"
+import { RankedExpert } from "@/types/rankedExpert"
 
 
-interface JobTitleCardProps {
-  item: JobTitleBenchmark
-  onChangeCategory?: (newCategory: string) => void
+interface ExpertTitleCardProps {
+    item: RankedExpert
+    onChangeCategory?: (newCategory: string) => void
 }
 
-export function JobTitleCard({ item, onChangeCategory }: JobTitleCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.benchmark_title_id })
+export function ExpertTitleCard({ item, onChangeCategory }: ExpertTitleCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.expert_id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -24,7 +25,7 @@ export function JobTitleCard({ item, onChangeCategory }: JobTitleCardProps) {
     zIndex: isDragging ? 10 : undefined,
   }
 
-  const wasCorrected = item.ai_category !== item.user_category
+  const wasCorrected = false
 
   // inside JobTitleCard.tsx
   return (
@@ -46,8 +47,8 @@ export function JobTitleCard({ item, onChangeCategory }: JobTitleCardProps) {
             <GripVertical className="h-5 w-5" />
           </div>
           <div className="flex-grow">
-            <p className="text-sm font-bold text-text-primary leading-tight">{item.company_job_function.job_function}</p>
-            <p className="text-xs text-text-secondary">at {item.company_job_function.company_name}</p>
+            <p className="text-sm font-bold text-text-primary leading-tight">{item.expert_id}</p>
+            <p className="text-xs text-text-secondary">at {item.relevance_justification}</p>
           </div>
           {wasCorrected && (
             <div className="p-1 text-primary" title="You corrected this item">
@@ -56,7 +57,7 @@ export function JobTitleCard({ item, onChangeCategory }: JobTitleCardProps) {
           )}
           {onChangeCategory && (
             <select
-              value={item.user_category || item.ai_category}
+              value={item.category}
               onChange={(e) => onChangeCategory(e.target.value)}
             >
               <option value="highly_relevant">✅ Highly Relevant</option>
