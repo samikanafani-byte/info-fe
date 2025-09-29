@@ -26,13 +26,20 @@ import { ResizableDialog } from "@/components/resizable-dialog"
 import { produce } from "immer"
 import { ProjectState } from "@/types/project"
 import { StreamState } from "@/types/streamState"
-import { continueProject } from "@/services/projectService"
+import { continueProject, updateProject } from "@/services/projectService"
 
 import { ToastContainer, toast } from 'react-toastify';
 import Screen5_Sourcing from "@/components/screens/screen-5-sourcing"
 import Screen4_BenchmarkReview from "@/components/screens/screen-4-benchmark-review"
 import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchmark-profiles"
 
+//1. Decode
+//2. Companies
+//3. Keywords
+//4. Benchmarking 
+//5. Benchmarking Profiles
+//5. Sourcing
+//6. Review
 
 const STEPS = ["Decode", "Companies", "Keywords", "Benchmarking", "Sourcing", "Review"]
 
@@ -306,13 +313,13 @@ export default function ExpertSearchPage() {
       case "benchmarking_titles":
         return 4
       case "benchmarking_profiles":
-        return 4
+        return 5
       case "validation":
-        return 5
-      case "sourcing":
-        return 5
-      case "completed":
         return 6
+      case "sourcing":
+        return 6
+      case "completed":
+        return 7
       default:
         return 1
     }
@@ -383,6 +390,18 @@ export default function ExpertSearchPage() {
       setIsLoading(false)
     }, 1000)
   }
+  const handleSelectDecoding = async (decoding: StreamState) => {
+    //patch the stream_state to make the status decode
+    decoding.status = "decode"
+    try{
+      const newResp = await updateProject(project?.session_id || "", decoding.stream_id, decoding)
+      const stream_to_set = newResp.stream_states.find(s => s.stream_id === decoding.stream_id)
+      setActiveDecoding(stream_to_set)
+    }
+    catch(error){
+      console.error("Error updating project:", error)
+    }  
+  }
 
 
 
@@ -397,6 +416,7 @@ export default function ExpertSearchPage() {
     }
     
     
+    
 
     if (!activeDecoding) {
       if (project) {
@@ -404,7 +424,7 @@ export default function ExpertSearchPage() {
           <Screen1_5DecodingHub
             project_state={project}
             onStartNewDecoding={handleStartNewDecoding}
-            onSelectDecoding={setActiveDecoding}
+            onSelectDecoding={handleSelectDecoding}
             isCorrecting={isCorrectingDecodings}
             onApplyFeedback={handleApplyFeedback}
           />
@@ -573,7 +593,7 @@ export default function ExpertSearchPage() {
             <ProgressStepper
               steps={STEPS}
               currentStep={getStepBasedOnStatus(activeDecoding.status ?? "brief")}
-              stepIndices={{ decode: 1, companies: 2, keywords: 3, benchmarking: 4, sourcing: 5, review: 6 }}
+              stepIndices={{ decode: 1, companies: 2, keywords: 3, benchmarking: 4, sourcing: 5, review: 7 }}
             />
           )}
         </header>

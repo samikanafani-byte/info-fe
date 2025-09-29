@@ -19,7 +19,7 @@ const STEPS = ["Brief", "Companies", "Keywords", "Sourcing", "Review"]
 
 
 const getStepName = (status: string) => {
-  // - decode
+  //   - decode
   //   - companies
   //   - keywords
   //   - sourcing

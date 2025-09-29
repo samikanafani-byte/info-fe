@@ -7,7 +7,9 @@ interface ProgressStepperProps {
 }
 
 export default function ProgressStepper({ steps, currentStep, stepIndices }: ProgressStepperProps) {
+  console.log("currentStep:", currentStep)
   const getStepLabel = (stepName: string) => {
+    
     if (stepName.toLowerCase() === "benchmarking") {
       if (currentStep === stepIndices.benchmarking) {
         return "Benchmark\n(1/2: Titles)"
@@ -21,9 +23,9 @@ export default function ProgressStepper({ steps, currentStep, stepIndices }: Pro
 
   const isStepActive = (stepName: string) => {
     const key = stepName.toLowerCase()
-    if (key === "sourcing") {
-      return currentStep >= stepIndices.sourcing && currentStep < stepIndices.review
-    }
+    // if (key === "sourcing") {
+    //   return currentStep >= stepIndices.sourcing && currentStep < stepIndices.review
+    // }
     return currentStep >= stepIndices[key]
   }
 
