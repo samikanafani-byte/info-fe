@@ -308,11 +308,11 @@ export default function ExpertSearchPage() {
       case "benchmarking_profiles":
         return 4
       case "validation":
-        return 6
+        return 5
       case "sourcing":
-        return 7
+        return 5
       case "completed":
-        return 8
+        return 6
       default:
         return 1
     }
