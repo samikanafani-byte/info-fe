@@ -15,6 +15,10 @@ import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { updateProject } from "@/services/projectService"
+import { BenchmarkComment } from "@/types/benchmarkComment"
+import { set } from "date-fns"
+import AddBenchmarkComment from "./add-benchmark-comment"
+
 
 interface Screen4_BenchmarkReviewProps {
     sessionId: string,
@@ -42,8 +46,12 @@ export default function Screen4_BenchmarkReview({
     onStartSourcing,
     onRebenchmark,
 }: Screen4_BenchmarkReviewProps) {
+    
+    
+
+    // if this item was set, then we need to show the dialog to input the reason for changing the category
+    const [benchmarkComment, setBenchmarkComment] = useState<BenchmarkComment | undefined>(undefined);
     const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
-    const [feedbackText, setFeedbackText] = useState<string>("")
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
     const benchMarkState = newStreamState.benchmark_state;
     const allSectionsFilled: JobTitleSections = {
@@ -66,17 +74,11 @@ export default function Screen4_BenchmarkReview({
     const [sections, setSections] = useState<JobTitleSections>(initialSections);
     const sectionIds = useMemo(() => Object.keys(sections), [sections]) as SectionId[];
 
-
-
-    useEffect(() => {
-
-    }, [highlyRelevantIndex, needMoreInfoIndex, definitelyNotRelevantIndex])
-
     
     const handleUpdate = useCallback((content: string) => {
         // setFeedbackContent(content);
         console.log("Updated content:", content);
-        setFeedbackText(content);
+        
     }, []);
 
 
@@ -126,7 +128,7 @@ export default function Screen4_BenchmarkReview({
             position: 'top-right',
             autoClose: 1000,
         });
-        setFeedbackText("")
+        
     };
     const totalSectionsCount = sections['highly-relevant'].length + sections['needs-more-info'].length + sections['definitely-not-relevant'].length;
 
@@ -152,11 +154,7 @@ export default function Screen4_BenchmarkReview({
 
 
     const getButtonText = () => {
-        if (benchMarkState?.status === "titles") {
-            return "Apply & Benchmark Profiles";
-        } else {
-            return "Apply & Start Full Sourcing";
-        }
+        return "Apply & Benchmark Profiles";
     }
     const getSectionTitle = (sectionId: SectionId) => {
         switch (sectionId) {
@@ -209,91 +207,127 @@ export default function Screen4_BenchmarkReview({
                 </div>
 
                 {/* Responsive Layout Container */}
-                <div className="flex-grow min-h-0 overflow-y-auto pr-1 -mr-3">
-                    {/* Accordion View for small containers */}
-                    <div className="w-full space-y-2 @md/main:hidden">
-                        <Accordion type="single" collapsible defaultValue="relevant" className="w-full space-y-2">
-                            {sectionIds.map((sectionId) => (
-                                <DroppableAccordionItem
-                                    key={sectionId}
-                                    id={sectionId}
-                                    title={getSectionTitle(sectionId)}
-                                    items={sections[sectionId]}
-                                    onChangeCategory={(itemId, newCategory) => {
-                                        console.log(`Moving item ${itemId} to category ${newCategory}`);
-                                        const allItems = [...sections['highly-relevant'], ...sections['needs-more-info'], ...sections['definitely-not-relevant']];
-                                        const itemToMove: JobTitleBenchmark| null  = allItems.find(item => item.benchmark_title_id === itemId) || null;
-                                        const old_category = itemToMove?.user_category || itemToMove?.ai_category;
-                                        //remove the item from the old category list
-                                        const oldSectionId = getSectionFromCategory(old_category!);
-                                        if (!itemToMove) return;
-                                        itemToMove.user_category = newCategory;
-                                        itemToMove.ai_category = newCategory;
-                                        const updatedOldSection = sections[oldSectionId].filter(item => item.benchmark_title_id !== itemId);
-                                        const updatedNewSection = [...sections[getSectionFromCategory(newCategory)], itemToMove];
-                                        const updatedSections: JobTitleSections = {
-                                            ...sections,
-                                            [oldSectionId]: updatedOldSection,
-                                            [getSectionFromCategory(newCategory)]: updatedNewSection
+                {benchmarkComment ==undefined && (
+
+                    <div>
+                        <div className="flex-grow min-h-0 overflow-y-auto pr-1 -mr-3">
+                            {/* Accordion View for small containers */}
+                            <div className="w-full space-y-2 @md/main:hidden">
+                                <Accordion type="single" collapsible defaultValue="relevant" className="w-full space-y-2">
+                                    {sectionIds.map((sectionId) => (
+                                        <DroppableAccordionItem
+                                            key={sectionId}
+                                            id={sectionId}
+                                            title={getSectionTitle(sectionId)}
+                                            items={sections[sectionId]}
+                                            onChangeCategory={(itemId, newCategory) => {
+                                                //show dialog to input the reason for changing the category
+                                                console.log(`Moving item ${itemId} to category ${newCategory}`);
+                                                const allItems = [...sections['highly-relevant'], ...sections['needs-more-info'], ...sections['definitely-not-relevant']];
+                                                const itemToMove: JobTitleBenchmark | null = allItems.find(item => item.benchmark_title_id === itemId) || null;
+                                                if (!itemToMove) {
+                                                    console.error("Item to move not found!");
+                                                    return
+                                                }
+                                                const old_category = itemToMove?.user_category || itemToMove?.ai_category;
+
+                                                const benchmarkComment: BenchmarkComment = {
+                                                    benchmarkItemId: itemId,
+                                                    oldCategory: old_category!,
+                                                    newCategory: newCategory,
+                                                    jobTitleBenchMarkItem: itemToMove!,
+                                                    //microseconds since epoch
+                                                    timestamp: Date.now() * 1000,
+                                                }
+                                                setBenchmarkComment(benchmarkComment);
+                                            }}
+                                        />
+                                    ))}
+                                </Accordion>
+                            </div>
+                        </div>
+
+
+                        <div className="flex-shrink-0 pt-4 mt-4 border-t border-custom-border">
+                            <HybridFeedbackInput
+                                mentionableItems={convertData()}
+                                onUpdate={handleUpdate}
+                                onSubmit={handleSubmit}
+                                key={totalSectionsCount}
+                            />
+                            <div className="flex items-center justify-between mt-4">
+                                <Button variant="link" onClick={onStartSourcing}>
+                                    Skip & Start Sourcing
+                                </Button>
+                                <div className="flex items-center space-x-2">
+                                    <Button variant="outline" onClick={() => {
+                                        // update the indicies to show 4 more items
+                                        let added: boolean = false
+                                        if (highlyRelevantIndex != null && highlyRelevantIndex + 4 < allSectionsFilled['highly-relevant'].length) {
+                                            setHighlyRelevantIndex(highlyRelevantIndex + 4)
+                                            added = true
                                         }
-                                        
-                                        
-                                    
-                                        setSections(updatedSections);
-                                        console.log("Updated Sections: High value length", updatedSections['highly-relevant'].length, "Need more info length", updatedSections['needs-more-info'].length, "Definitely not relevant length", updatedSections['definitely-not-relevant'].length);
-                                    }}
-                                />
-                            ))}
-                        </Accordion>
-                    </div>
-                </div>
+                                        if (needMoreInfoIndex != null && needMoreInfoIndex + 4 < allSectionsFilled['needs-more-info'].length) {
+                                            setNeedMoreInfoIndex(needMoreInfoIndex + 4)
+                                            added = true
+                                        }
+                                        if (definitelyNotRelevantIndex != null && definitelyNotRelevantIndex + 4 < allSectionsFilled['definitely-not-relevant'].length) {
+                                            setDefinitelyNotRelevantIndex(definitelyNotRelevantIndex + 4)
+                                            added = true
+                                        }
 
+                                        if (!added) {
+                                            // show alert that we can't benchmark more
+                                            toast.error('No more items to benchmark!', {
+                                                position: 'top-right',
+                                                autoClose: 1000,
+                                            });
 
-                <div className="flex-shrink-0 pt-4 mt-4 border-t border-custom-border">
-                    <HybridFeedbackInput
-                        mentionableItems={convertData()}
-                        onUpdate={handleUpdate}
-                        onSubmit={handleSubmit}
-                        key={totalSectionsCount}
-                    />
-                    <div className="flex items-center justify-between mt-4">
-                        <Button variant="link" onClick={onStartSourcing}>
-                            Skip & Start Sourcing
-                        </Button>
-                        <div className="flex items-center space-x-2">
-                            <Button variant="outline" onClick={() => {
-                                // update the indicies to show 4 more items
-                                let added: boolean = false
-                                if (highlyRelevantIndex != null && highlyRelevantIndex + 4 < allSectionsFilled['highly-relevant'].length) {
-                                    setHighlyRelevantIndex(highlyRelevantIndex + 4)
-                                    added = true
-                                }
-                                if (needMoreInfoIndex != null && needMoreInfoIndex + 4 < allSectionsFilled['needs-more-info'].length) {
-                                    setNeedMoreInfoIndex(needMoreInfoIndex + 4)
-                                    added = true
-                                }
-                                if (definitelyNotRelevantIndex != null && definitelyNotRelevantIndex + 4 < allSectionsFilled['definitely-not-relevant'].length) {
-                                    setDefinitelyNotRelevantIndex(definitelyNotRelevantIndex + 4)
-                                    added = true
-                                }
+                                        }
 
-                                if (!added) {
-                                    // show alert that we can't benchmark more
-                                    toast.error('No more items to benchmark!', {
-                                        position: 'top-right',
-                                        autoClose: 1000,
-                                    });
-
-                                }
-
-                            }}>
-                                Benchmark More
-                            </Button>
-                            <Button onClick={handleStartResourcing}>{getButtonText()}</Button>
+                                    }}>
+                                        Benchmark More
+                                    </Button>
+                                    <Button onClick={handleStartResourcing}>{getButtonText()}</Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
+                
+                {benchmarkComment && (
+                    <AddBenchmarkComment
+                        benchmarkComment={benchmarkComment}
+                        onSubmit={(comment) => {
+                            // Append the new comment to the existing comments in the stream state
+                            const oldCategory = comment.oldCategory;
+                            const oldSectionId = getSectionFromCategory(oldCategory!);
+                            const newCategory = comment.newCategory;
+                        
+                            const itemToMove = comment.jobTitleBenchMarkItem                            
+                            if (!itemToMove) return;
+                            itemToMove.user_category = newCategory;
+                            itemToMove.ai_category = newCategory;
+                            const updatedOldSection = sections[oldSectionId].filter(item => item.benchmark_title_id !== comment.benchmarkItemId);
+                            const updatedNewSection = [...sections[getSectionFromCategory(newCategory)], itemToMove];
+                            const updatedSections: JobTitleSections = {
+                                ...sections,
+                                [oldSectionId]: updatedOldSection,
+                                [getSectionFromCategory(newCategory)]: updatedNewSection
+                            }
+
+                            setSections(updatedSections);
+                            console.log("Updated Sections: High value length", updatedSections['highly-relevant'].length, "Need more info length", updatedSections['needs-more-info'].length, "Definitely not relevant length", updatedSections['definitely-not-relevant'].length);
+                            // find the item in the sections and update its user_comment
+                            setBenchmarkComment(undefined);
+
+                        }}
+                        onCancel={() => setBenchmarkComment(undefined)}
+                    />
+                )}
+
             </div>
+
 
             <ToastContainer
                 position="top-right" // You can change this
