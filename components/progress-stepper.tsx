@@ -23,9 +23,9 @@ export default function ProgressStepper({ steps, currentStep, stepIndices }: Pro
 
   const isStepActive = (stepName: string) => {
     const key = stepName.toLowerCase()
-    // if (key === "sourcing") {
-    //   return currentStep >= stepIndices.sourcing && currentStep < stepIndices.review
-    // }
+    if (key === "sourcing") {
+      return currentStep > stepIndices.sourcing
+    }
     return currentStep >= stepIndices[key]
   }
 

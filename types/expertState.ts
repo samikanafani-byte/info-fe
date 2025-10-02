@@ -31,9 +31,9 @@ export function convertRankedExpertsToExpert(input: RankedExpert): Expert {
     return {
         id: `${input.expert_id}`,
         name: input.expert_id.toString(), // Placeholder, replace with actual name if available
-        company: "Matched based on profile", // Placeholder, replace with actual company if available
+        company: input.latest_company_name ?? "Matched based on profile", // Placeholder, replace with actual company if available
         reasoningSummary: input.relevance_justification,
-        title: "Matched based on profile",
+        title: input.latest_job_function ?? "Matched based on profile",
         score: input.category
     }
 }

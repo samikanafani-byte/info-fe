@@ -3,16 +3,29 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, UserPlus, UserMinus, FileText } from "lucide-react"
+import { Star, UserPlus, UserMinus, FileText, ChevronRight } from "lucide-react"
 import type { Expert } from "@/lib/data"
 import { ReasoningTooltip } from "./reasoning-tooltip"
 import Tooltip from '@mui/material/Tooltip';
+
 interface ExpertCardProps {
   expert: Expert
   isShortlisted: boolean
   onShortlist: () => void
   onDismiss: () => void
   onViewDetails: () => void
+}
+const getScoreTitle = (score: string) => {
+  switch (score.toLowerCase()) {
+    case "highly_relevant":
+      return "Highly Relevant"
+    case "needs_more_info":
+      return "Needs More Info"
+    case "definitely_not_relevant":
+      return "Definitely Not Relevant"
+    default:
+      return score
+  }
 }
 
 export function ExpertCard({ expert, isShortlisted, onShortlist, onDismiss, onViewDetails }: ExpertCardProps) {
@@ -22,7 +35,17 @@ export function ExpertCard({ expert, isShortlisted, onShortlist, onDismiss, onVi
         <CardContent className="p-3">
           <div className="flex justify-between items-start">
             <div>
-              <a href={`https://iqplatform.iqnetwork.co/new_expert.php?id=${expert.id}`} target="_blank"><h3 className="font-bold text-base text-text-primary">{expert.name}</h3></a>
+              
+              <div className="flex flex-row gap-2 items-center justify-start">
+                <h3 className="font-bold text-base text-text-primary">{expert.name}</h3> 
+                <a href={`https://iqplatform.iqnetwork.co/new_expert.php?id=${expert.id}`} target="_blank">
+                  <div className="flex flex-row items-center justify-start">
+                    <p className="text-xs text-primary">View more info</p>
+                    <ChevronRight className="h-2 w-2 text-primary" />
+                  </div>
+                </a>
+                </div>
+              
               <p className="text-sm text-text-primary">{expert.title}</p>
               <p className="text-xs text-text-secondary">{expert.company}</p>
             </div>
@@ -31,7 +54,7 @@ export function ExpertCard({ expert, isShortlisted, onShortlist, onDismiss, onVi
               className="flex items-center gap-1 text-primary bg-primary/10 border border-primary/20"
             >
               <Star className="h-3.5 w-3.5" />
-              <span className="font-semibold">{expert.score}</span>
+              <span className="font-semibold">{getScoreTitle(expert.score)}</span>
             </Badge>
           </div>
           <div className="mt-3 flex justify-end space-x-2">
