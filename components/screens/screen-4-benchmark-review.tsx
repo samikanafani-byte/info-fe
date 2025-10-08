@@ -15,6 +15,11 @@ import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { updateProject } from "@/services/projectService"
+import { BenchmarkComment } from "@/types/benchmarkComment"
+import { set } from "date-fns"
+import AddBenchmarkComment from "./add-benchmark-comment"
+import HistoryComponent from "../historyComponent"
+
 
 interface Screen4_BenchmarkReviewProps {
     sessionId: string,
@@ -29,21 +34,18 @@ type SectionId = 'highly-relevant' | 'needs-more-info' | 'definitely-not-relevan
 type JobTitleSections = Record<SectionId, JobTitleBenchmark[]>;
 
 
-
-const CATEGORIES = [
-    { id: "highly_relevant", title: "✅ Highly Relevant" },
-    { id: "needs_more_info", title: "❓ Needs More Info" },
-    { id: "definitely_not_relevant", title: "❌ Not Relevant" },
-] as const
-
 export default function Screen4_BenchmarkReview({
     sessionId,
     streamState,
     onStartSourcing,
     onRebenchmark,
 }: Screen4_BenchmarkReviewProps) {
+    
+    
+
+    // if this item was set, then we need to show the dialog to input the reason for changing the category
+    const [benchmarkComment, setBenchmarkComment] = useState<BenchmarkComment | undefined>(undefined);
     const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
-    const [feedbackText, setFeedbackText] = useState<string>("")
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
     const benchMarkState = newStreamState.benchmark_state;
     const allSectionsFilled: JobTitleSections = {
@@ -65,18 +67,13 @@ export default function Screen4_BenchmarkReview({
 
     const [sections, setSections] = useState<JobTitleSections>(initialSections);
     const sectionIds = useMemo(() => Object.keys(sections), [sections]) as SectionId[];
-
-
-
-    useEffect(() => {
-
-    }, [highlyRelevantIndex, needMoreInfoIndex, definitelyNotRelevantIndex])
+    const [showHistory, setShowHistory] = useState<boolean>(false);
 
     
     const handleUpdate = useCallback((content: string) => {
         // setFeedbackContent(content);
         console.log("Updated content:", content);
-        setFeedbackText(content);
+        
     }, []);
 
 
@@ -89,7 +86,14 @@ export default function Screen4_BenchmarkReview({
         console.log("Mentioned Job Functions:", mentionedJobFunctions);
         //check for the mentioned job function in the 
         for (const jobFunction of mentionedJobFunctions) {
-            jobFunction.user_comment = content;
+            if(jobFunction.user_comments == undefined){
+                jobFunction.user_comments = []
+            }
+            // jobFunction.user_comment = content;
+            jobFunction.user_comments.push({
+                user_comment: content,
+                timestamp: Date.now() * 1000, // convert to microseconds
+            });
         }
         // update the stream state with the new benchmark titles
         const updatedBenchMarkState = {
@@ -126,7 +130,7 @@ export default function Screen4_BenchmarkReview({
             position: 'top-right',
             autoClose: 1000,
         });
-        setFeedbackText("")
+        
     };
     const totalSectionsCount = sections['highly-relevant'].length + sections['needs-more-info'].length + sections['definitely-not-relevant'].length;
 
@@ -152,11 +156,7 @@ export default function Screen4_BenchmarkReview({
 
 
     const getButtonText = () => {
-        if (benchMarkState?.status === "titles") {
-            return "Apply & Benchmark Profiles";
-        } else {
-            return "Apply & Start Full Sourcing";
-        }
+        return "Apply & Benchmark Profiles";
     }
     const getSectionTitle = (sectionId: SectionId) => {
         switch (sectionId) {
@@ -195,105 +195,212 @@ export default function Screen4_BenchmarkReview({
     }
 
     
+    const handleShowHistory = () => {
+        setShowHistory(true);
+    }
 
+    const addCommentToServer = async (comment: BenchmarkComment) => {
+        // Append the new comment to the existing comments in the stream state
+        const oldCategory = comment.oldCategory;
+        const oldSectionId = getSectionFromCategory(oldCategory!);
+        const newCategory = comment.newCategory;
 
+        const itemToMove = comment.jobTitleBenchMarkItem
+        if (!itemToMove) return;
+        itemToMove.user_category = newCategory;
+        itemToMove.ai_category = newCategory;
+        if(itemToMove.user_comments == undefined){
+            itemToMove.user_comments = []
+        }
 
+        itemToMove.user_comments.push({
+            user_comment: comment.userComment ?? "",
+            timestamp: Date.now() * 1000, // convert to microseconds
+        });
+
+        console.log("Moving item:", itemToMove);
+        const updatedOldSection = sections[oldSectionId].filter(item => item.benchmark_title_id !== comment.benchmarkItemId);
+        const updatedNewSection = [...sections[getSectionFromCategory(newCategory)], itemToMove];
+        const updatedSections: JobTitleSections = {
+            ...sections,
+            [oldSectionId]: updatedOldSection,
+            [getSectionFromCategory(newCategory)]: updatedNewSection
+        }
+
+        setSections(updatedSections);
+        console.log("Updated Sections: High value length", updatedSections['highly-relevant'].length, "Need more info length", updatedSections['needs-more-info'].length, "Definitely not relevant length", updatedSections['definitely-not-relevant'].length);
+        // send a request to update the stream state with the new sections
+        const updatedBenchMarkState = {
+            ...benchMarkState,
+            benchmark_titles: {
+                results: [
+                    ...updatedSections['highly-relevant'],
+                    ...updatedSections['needs-more-info'],
+                    ...updatedSections['definitely-not-relevant']
+                ]
+            }
+        }
+        const updatedStreamState = {
+            ...newStreamState,
+            benchmark_state: updatedBenchMarkState
+        }
+        //send request to server
+        try{
+            const response = await updateProject(sessionId, updatedStreamState.stream_id, updatedStreamState)
+            setNewStreamState(updatedStreamState);
+        }catch(error){
+            console.error("Error updating project with benchmark comment:", error);
+        }finally{
+            // find the item in the sections and update its user_comment
+            setBenchmarkComment(undefined);
+        }
+    }
+    const updateBenchMarkStateOnServer = async (updatedBenchMarkState: StreamState['benchmark_state']) => {
+        const updatedStreamState = {
+            ...newStreamState,
+            benchmark_state: updatedBenchMarkState
+        }
+        try {
+            const response = await updateProject(sessionId, newStreamState.stream_id, updatedStreamState);
+            setNewStreamState(updatedStreamState);
+            setShowHistory(false);
+        }
+        catch (error) {
+            console.error("Error updating project with feedback:", error);
+        }
+    }
 
     return (
         <div>
             <div className="flex flex-col h-full">
-                <div className="flex-shrink-0">
-                    <p className="text-sm text-text-secondary mb-4">
-                        Drag job titles to correct the AI, and use '@' to reference them in your feedback below.
-                    </p>
-                </div>
+
 
                 {/* Responsive Layout Container */}
-                <div className="flex-grow min-h-0 overflow-y-auto pr-1 -mr-3">
-                    {/* Accordion View for small containers */}
-                    <div className="w-full space-y-2 @md/main:hidden">
-                        <Accordion type="single" collapsible defaultValue="relevant" className="w-full space-y-2">
-                            {sectionIds.map((sectionId) => (
-                                <DroppableAccordionItem
-                                    key={sectionId}
-                                    id={sectionId}
-                                    title={getSectionTitle(sectionId)}
-                                    items={sections[sectionId]}
-                                    onChangeCategory={(itemId, newCategory) => {
-                                        console.log(`Moving item ${itemId} to category ${newCategory}`);
-                                        const allItems = [...sections['highly-relevant'], ...sections['needs-more-info'], ...sections['definitely-not-relevant']];
-                                        const itemToMove: JobTitleBenchmark| null  = allItems.find(item => item.benchmark_title_id === itemId) || null;
-                                        const old_category = itemToMove?.user_category || itemToMove?.ai_category;
-                                        //remove the item from the old category list
-                                        const oldSectionId = getSectionFromCategory(old_category!);
-                                        if (!itemToMove) return;
-                                        itemToMove.user_category = newCategory;
-                                        itemToMove.ai_category = newCategory;
-                                        const updatedOldSection = sections[oldSectionId].filter(item => item.benchmark_title_id !== itemId);
-                                        const updatedNewSection = [...sections[getSectionFromCategory(newCategory)], itemToMove];
-                                        const updatedSections: JobTitleSections = {
-                                            ...sections,
-                                            [oldSectionId]: updatedOldSection,
-                                            [getSectionFromCategory(newCategory)]: updatedNewSection
-                                        }
-                                        
-                                        
-                                    
-                                        setSections(updatedSections);
-                                        console.log("Updated Sections: High value length", updatedSections['highly-relevant'].length, "Need more info length", updatedSections['needs-more-info'].length, "Definitely not relevant length", updatedSections['definitely-not-relevant'].length);
-                                    }}
-                                />
-                            ))}
-                        </Accordion>
-                    </div>
-                </div>
+                {(benchmarkComment ==undefined && !showHistory) && (
 
+                    <div className="flex flex-col">
 
-                <div className="flex-shrink-0 pt-4 mt-4 border-t border-custom-border">
-                    <HybridFeedbackInput
-                        mentionableItems={convertData()}
-                        onUpdate={handleUpdate}
-                        onSubmit={handleSubmit}
-                        key={totalSectionsCount}
-                    />
-                    <div className="flex items-center justify-between mt-4">
-                        <Button variant="link" onClick={onStartSourcing}>
-                            Skip & Start Sourcing
-                        </Button>
-                        <div className="flex items-center space-x-2">
-                            <Button variant="outline" onClick={() => {
-                                // update the indicies to show 4 more items
-                                let added: boolean = false
-                                if (highlyRelevantIndex != null && highlyRelevantIndex + 4 < allSectionsFilled['highly-relevant'].length) {
-                                    setHighlyRelevantIndex(highlyRelevantIndex + 4)
-                                    added = true
-                                }
-                                if (needMoreInfoIndex != null && needMoreInfoIndex + 4 < allSectionsFilled['needs-more-info'].length) {
-                                    setNeedMoreInfoIndex(needMoreInfoIndex + 4)
-                                    added = true
-                                }
-                                if (definitelyNotRelevantIndex != null && definitelyNotRelevantIndex + 4 < allSectionsFilled['definitely-not-relevant'].length) {
-                                    setDefinitelyNotRelevantIndex(definitelyNotRelevantIndex + 4)
-                                    added = true
-                                }
+                        <div className="flex flex-row justify-end">
 
-                                if (!added) {
-                                    // show alert that we can't benchmark more
-                                    toast.error('No more items to benchmark!', {
-                                        position: 'top-right',
-                                        autoClose: 1000,
-                                    });
-
-                                }
-
-                            }}>
-                                Benchmark More
+                            <Button onClick={handleShowHistory} size={"sm"} variant="outline">
+                                History
                             </Button>
-                            <Button onClick={handleStartResourcing}>{getButtonText()}</Button>
+
+                        </div>
+                        <div className="flex-shrink-0">
+                            <p className="text-sm text-text-secondary mb-4">
+                                Drag job titles to correct the AI, and use '@' to reference them in your feedback below.
+                            </p>
+                        </div>
+
+                        <div className="flex-grow min-h-0 overflow-y-auto pr-1 -mr-3">
+                            {/* Accordion View for small containers */}
+                            <div className="w-full space-y-2 @md/main:hidden">
+                                <Accordion type="single" collapsible defaultValue="relevant" className="w-full space-y-2">
+                                    {sectionIds.map((sectionId) => (
+                                        <DroppableAccordionItem
+                                            key={sectionId}
+                                            id={sectionId}
+                                            title={getSectionTitle(sectionId)}
+                                            items={sections[sectionId]}
+                                            onChangeCategory={(itemId, newCategory) => {
+                                                //show dialog to input the reason for changing the category
+                                                console.log(`Moving item ${itemId} to category ${newCategory}`);
+                                                const allItems = [...sections['highly-relevant'], ...sections['needs-more-info'], ...sections['definitely-not-relevant']];
+                                                const itemToMove: JobTitleBenchmark | null = allItems.find(item => item.benchmark_title_id === itemId) || null;
+                                                if (!itemToMove) {
+                                                    console.error("Item to move not found!");
+                                                    return
+                                                }
+                                                const old_category = itemToMove?.user_category || itemToMove?.ai_category;
+
+                                                const benchmarkComment: BenchmarkComment = {
+                                                    benchmarkItemId: itemId,
+                                                    oldCategory: old_category!,
+                                                    newCategory: newCategory,
+                                                    jobTitleBenchMarkItem: itemToMove!,
+                                                    //microseconds since epoch
+                                                    timestamp: Date.now() * 1000,
+                                                }
+                                                setBenchmarkComment(benchmarkComment);
+                                            }}
+                                        />
+                                    ))}
+                                </Accordion>
+                            </div>
+                        </div>
+
+
+                        <div className="flex-shrink-0 pt-4 mt-4 border-t border-custom-border">
+                            <HybridFeedbackInput
+                                mentionableItems={convertData()}
+                                onUpdate={handleUpdate}
+                                onSubmit={handleSubmit}
+                                key={totalSectionsCount}
+                            />
+                            <div className="flex items-center justify-between mt-4">
+                                <Button variant="link" onClick={onStartSourcing}>
+                                    Skip & Start Sourcing
+                                </Button>
+                                <div className="flex items-center space-x-2">
+                                    <Button variant="outline" onClick={() => {
+                                        // update the indicies to show 4 more items
+                                        let added: boolean = false
+                                        if (highlyRelevantIndex != null && highlyRelevantIndex + 4 < allSectionsFilled['highly-relevant'].length) {
+                                            setHighlyRelevantIndex(highlyRelevantIndex + 4)
+                                            added = true
+                                        }
+                                        if (needMoreInfoIndex != null && needMoreInfoIndex + 4 < allSectionsFilled['needs-more-info'].length) {
+                                            setNeedMoreInfoIndex(needMoreInfoIndex + 4)
+                                            added = true
+                                        }
+                                        if (definitelyNotRelevantIndex != null && definitelyNotRelevantIndex + 4 < allSectionsFilled['definitely-not-relevant'].length) {
+                                            setDefinitelyNotRelevantIndex(definitelyNotRelevantIndex + 4)
+                                            added = true
+                                        }
+
+                                        if (!added) {
+                                            // show alert that we can't benchmark more
+                                            toast.error('No more items to benchmark!', {
+                                                position: 'top-right',
+                                                autoClose: 1000,
+                                            });
+
+                                        }
+
+                                    }}>
+                                        Benchmark More
+                                    </Button>
+                                    <Button onClick={handleStartResourcing}>{getButtonText()}</Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
+                {(showHistory && benchMarkState) && (
+                    <HistoryComponent
+                        benchMarkState={benchMarkState}
+                        historyType={"title"}
+                        onSave={(updatedState) => {
+                            updateBenchMarkStateOnServer(updatedState);
+                            
+                        }}
+                        onGoBack={() => setShowHistory(false)}
+                    />
+                )}
+                {benchmarkComment && (
+                    <AddBenchmarkComment
+                        benchmarkComment={benchmarkComment}
+                        onSubmit={(comment) => {
+
+                            addCommentToServer(comment);
+                        }}
+                        onCancel={() => setBenchmarkComment(undefined)}
+                    />
+                )}
+
             </div>
+
 
             <ToastContainer
                 position="top-right" // You can change this

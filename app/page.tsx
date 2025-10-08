@@ -32,6 +32,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import Screen5_Sourcing from "@/components/screens/screen-5-sourcing"
 import Screen4_BenchmarkReview from "@/components/screens/screen-4-benchmark-review"
 import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchmark-profiles"
+import PreventClosing from "@/components/screens/preventClosing"
+import Link from 'next/link';
+
+import { useRouter } from 'next/navigation';
 
 //1. Decode
 //2. Companies
@@ -43,52 +47,6 @@ import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchma
 
 const STEPS = ["Decode", "Companies", "Keywords", "Benchmarking", "Sourcing", "Review"]
 
-// Mock data for prompt management
-
-const mockGlobalSnippets = [
-  {
-    id: "viewpoint-def",
-    name: "Viewpoint Definition",
-    content: `A viewpoint represents a specific perspective or role within an industry ecosystem. 
-    
-Examples:
-- Sellers: Companies that manufacture or provide products/services
-- Buyers: Companies that purchase or consume products/services
-- Regulators: Government bodies that oversee the industry
-- Enablers: Companies that facilitate transactions or provide infrastructure`,
-    versions: [
-      {
-        id: "vp-v1",
-        version: "1.0",
-        content: "Basic viewpoint definition...",
-        author: "System",
-        timestamp: "2024-01-10 09:00",
-        isMain: true,
-      },
-    ],
-    currentVersion: "1.0",
-  },
-  {
-    id: "scoring-template",
-    name: "Scoring Template",
-    content: `Scoring criteria template:
-1. Direct Relevance (0.4): How closely the experience matches requirements
-2. Industry Experience (0.3): Experience in the target industry
-3. Seniority Level (0.2): Leadership and decision-making experience
-4. Geographic Relevance (0.1): Experience in target markets`,
-    versions: [
-      {
-        id: "st-v1",
-        version: "1.0",
-        content: "Initial scoring template...",
-        author: "System",
-        timestamp: "2024-01-10 09:00",
-        isMain: true,
-      },
-    ],
-    currentVersion: "1.0",
-  },
-]
 
 const createNewDecoding = (id: string, name: string, reasoning: string): DecodingProcess => ({
   id,
@@ -123,12 +81,8 @@ export default function ExpertSearchPage() {
   const [currentBranch, setCurrentBranch] = useState("john-doe/feature-improvements")
   const [project, setProject] = useState<ProjectState | null>(null)
 
-  const availableBranches = [
-    "main",
-    "john-doe/feature-improvements",
-    "jane-smith/new-scoring-model",
-    "team/experimental-prompts",
-  ]
+
+  const router = useRouter();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -162,9 +116,6 @@ export default function ExpertSearchPage() {
     )
   }
 
-  const handleToggleCorrection = () => {
-    setIsCorrectingDecodings(!isCorrectingDecodings)
-  }
 
   const handleApplyFeedback = (feedbackText: string) => {
     setIsLoading(true)
@@ -217,6 +168,10 @@ export default function ExpertSearchPage() {
       setDecodings(initialDecodings)
       setIsLoading(false)
       setProject(project)
+      // move to the new page with the project id in the url 
+      router.push(`/${project.session_id}`);
+
+
     }, 1500)
   }
 
@@ -433,79 +388,7 @@ export default function ExpertSearchPage() {
       return <Screen1BriefInput onStartAnalysis={handleStartAnalysis} />
     }
     console.log("Rendering screen for status:", activeDecoding.status)
-    switch (activeDecoding.status) {
-      case "decode":
-        return (
-          <Screen2ReviewBrief
-            session_id={project?.session_id || ""}
-            streamState={activeDecoding}
-            onApprove={handleApproveBrief}
-            onReanalyze={() => {}}
-            onDataChange={(data) => updateStream(data)}
-          />
-        )
-      case "companies":
-        return (
-          <Screen2_5ReviewCompanies
-            sessionId={project?.session_id || ""}
-            streamState={activeDecoding}
-            onApprove={handleApproveCompanies}
-            onBack={() => updateActiveDecoding((d) => (d.step = 2))}
-            onDataChange={(data) => updateStream(data)}
-          />
-        )
-      case "keywords":
-        return (
-          <Screen3ReviewKeywords
-            sessionId={project?.session_id || ""}
-            streamState={activeDecoding}
-            onApprove={handleApproveKeywords}
-            onBack={() => updateActiveDecoding((d) => (d.step = 2))}
-            onDataChange={(data) => updateStream(data)}
-          />
-        )
-      case "benchmarking_titles":
-        return <Screen4_BenchmarkReview 
-          sessionId={project?.session_id || ""}
-          streamState={activeDecoding}
-          onStartSourcing={() => {
-            handleApproveBenchmarkTitles()
-          }}
-          onNext={() => {}}
-          onRebenchmark={() => {}}
-        />
-      case "benchmarking_profiles":
-        return <Screen4_5_BenchmarkProfiles
-          sessionId={project?.session_id || ""}
-          streamState={activeDecoding}
-          onStartSourcing={() => { 
-            handleApproveExperts()
-          }}
-          onNext={() => { }}
-          onRebenchmark={() => { }}
-        />
-      case "sourcing":
-        return (
-          <Screen5_Sourcing
-            sessionId={project?.session_id || ""}
-            streamState={activeDecoding}
-            onStartSourcing={handleStartFullSourcing}
-            onRebenchmark={handleRebenchmark}
-          />
-        )
-      case "completed":
-        return (
-          <Screen5ReviewShortlist
-            streamState={activeDecoding}
-            sessionId={project?.session_id || ""}
-            onStartNewSearch={() => {
-              setActiveDecoding(undefined)
-            }}
-          />
-        )
-      default:
-        return <Screen1BriefInput onStartAnalysis={handleStartAnalysis} />
-    }
+    return <div></div>
   }
 
   const isAgentActive = decodings.some((d) => d.status === "in-progress")
@@ -530,6 +413,7 @@ export default function ExpertSearchPage() {
 
   return (
     <div className="bg-background-subtle min-h-screen flex items-center justify-center font-sans">
+      <PreventClosing shouldConfirmLeave={true} />
       <ResizableDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -580,13 +464,6 @@ export default function ExpertSearchPage() {
                   )}
                 </span>
               </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              {decodings.length > 0 && !activeDecoding && (
-                <Button variant="link" className="text-sm" onClick={handleToggleCorrection}>
-                  {isCorrectingDecodings ? "Cancel Correction" : "Correct Decodings"}
-                </Button>
-              )}
             </div>
           </div>
           {activeDecoding && (
