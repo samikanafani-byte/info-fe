@@ -18,6 +18,7 @@ import { updateProject } from "@/services/projectService"
 import { BenchmarkComment } from "@/types/benchmarkComment"
 import { set } from "date-fns"
 import AddBenchmarkComment from "./add-benchmark-comment"
+import HistoryComponent from "../historyComponent"
 
 
 interface Screen4_BenchmarkReviewProps {
@@ -32,13 +33,6 @@ type SectionId = 'highly-relevant' | 'needs-more-info' | 'definitely-not-relevan
 // Helper type for our state structure
 type JobTitleSections = Record<SectionId, JobTitleBenchmark[]>;
 
-
-
-const CATEGORIES = [
-    { id: "highly_relevant", title: "✅ Highly Relevant" },
-    { id: "needs_more_info", title: "❓ Needs More Info" },
-    { id: "definitely_not_relevant", title: "❌ Not Relevant" },
-] as const
 
 export default function Screen4_BenchmarkReview({
     sessionId,
@@ -73,6 +67,7 @@ export default function Screen4_BenchmarkReview({
 
     const [sections, setSections] = useState<JobTitleSections>(initialSections);
     const sectionIds = useMemo(() => Object.keys(sections), [sections]) as SectionId[];
+    const [showHistory, setShowHistory] = useState<boolean>(false);
 
     
     const handleUpdate = useCallback((content: string) => {
@@ -91,7 +86,14 @@ export default function Screen4_BenchmarkReview({
         console.log("Mentioned Job Functions:", mentionedJobFunctions);
         //check for the mentioned job function in the 
         for (const jobFunction of mentionedJobFunctions) {
-            jobFunction.user_comment = content;
+            if(jobFunction.user_comments == undefined){
+                jobFunction.user_comments = []
+            }
+            // jobFunction.user_comment = content;
+            jobFunction.user_comments.push({
+                user_comment: content,
+                timestamp: Date.now() * 1000, // convert to microseconds
+            });
         }
         // update the stream state with the new benchmark titles
         const updatedBenchMarkState = {
@@ -193,23 +195,104 @@ export default function Screen4_BenchmarkReview({
     }
 
     
+    const handleShowHistory = () => {
+        setShowHistory(true);
+    }
 
+    const addCommentToServer = async (comment: BenchmarkComment) => {
+        // Append the new comment to the existing comments in the stream state
+        const oldCategory = comment.oldCategory;
+        const oldSectionId = getSectionFromCategory(oldCategory!);
+        const newCategory = comment.newCategory;
 
+        const itemToMove = comment.jobTitleBenchMarkItem
+        if (!itemToMove) return;
+        itemToMove.user_category = newCategory;
+        itemToMove.ai_category = newCategory;
+        if(itemToMove.user_comments == undefined){
+            itemToMove.user_comments = []
+        }
 
+        itemToMove.user_comments.push({
+            user_comment: comment.userComment ?? "",
+            timestamp: Date.now() * 1000, // convert to microseconds
+        });
+
+        console.log("Moving item:", itemToMove);
+        const updatedOldSection = sections[oldSectionId].filter(item => item.benchmark_title_id !== comment.benchmarkItemId);
+        const updatedNewSection = [...sections[getSectionFromCategory(newCategory)], itemToMove];
+        const updatedSections: JobTitleSections = {
+            ...sections,
+            [oldSectionId]: updatedOldSection,
+            [getSectionFromCategory(newCategory)]: updatedNewSection
+        }
+
+        setSections(updatedSections);
+        console.log("Updated Sections: High value length", updatedSections['highly-relevant'].length, "Need more info length", updatedSections['needs-more-info'].length, "Definitely not relevant length", updatedSections['definitely-not-relevant'].length);
+        // send a request to update the stream state with the new sections
+        const updatedBenchMarkState = {
+            ...benchMarkState,
+            benchmark_titles: {
+                results: [
+                    ...updatedSections['highly-relevant'],
+                    ...updatedSections['needs-more-info'],
+                    ...updatedSections['definitely-not-relevant']
+                ]
+            }
+        }
+        const updatedStreamState = {
+            ...newStreamState,
+            benchmark_state: updatedBenchMarkState
+        }
+        //send request to server
+        try{
+            const response = await updateProject(sessionId, updatedStreamState.stream_id, updatedStreamState)
+            setNewStreamState(updatedStreamState);
+        }catch(error){
+            console.error("Error updating project with benchmark comment:", error);
+        }finally{
+            // find the item in the sections and update its user_comment
+            setBenchmarkComment(undefined);
+        }
+    }
+    const updateBenchMarkStateOnServer = async (updatedBenchMarkState: StreamState['benchmark_state']) => {
+        const updatedStreamState = {
+            ...newStreamState,
+            benchmark_state: updatedBenchMarkState
+        }
+        try {
+            const response = await updateProject(sessionId, newStreamState.stream_id, updatedStreamState);
+            setNewStreamState(updatedStreamState);
+            setShowHistory(false);
+        }
+        catch (error) {
+            console.error("Error updating project with feedback:", error);
+        }
+    }
 
     return (
         <div>
             <div className="flex flex-col h-full">
-                <div className="flex-shrink-0">
-                    <p className="text-sm text-text-secondary mb-4">
-                        Drag job titles to correct the AI, and use '@' to reference them in your feedback below.
-                    </p>
-                </div>
+
 
                 {/* Responsive Layout Container */}
-                {benchmarkComment ==undefined && (
+                {(benchmarkComment ==undefined && !showHistory) && (
 
-                    <div>
+                    <div className="flex flex-col">
+
+                        <div className="flex flex-row justify-end">
+
+                            <Button onClick={handleShowHistory} size={"sm"} variant="outline">
+                                History
+                            </Button>
+
+                        </div>
+                        <div className="flex-shrink-0">
+                            <p className="text-sm text-text-secondary mb-4">
+                                Drag job titles to correct the AI, and use '@' to reference them in your feedback below.
+                            </p>
+                        </div>
+
                         <div className="flex-grow min-h-0 overflow-y-auto pr-1 -mr-3">
                             {/* Accordion View for small containers */}
                             <div className="w-full space-y-2 @md/main:hidden">
@@ -294,33 +377,23 @@ export default function Screen4_BenchmarkReview({
                         </div>
                     </div>
                 )}
-                
+                {(showHistory && benchMarkState) && (
+                    <HistoryComponent
+                        benchMarkState={benchMarkState}
+                        historyType={"title"}
+                        onSave={(updatedState) => {
+                            updateBenchMarkStateOnServer(updatedState);
+                            
+                        }}
+                        onGoBack={() => setShowHistory(false)}
+                    />
+                )}
                 {benchmarkComment && (
                     <AddBenchmarkComment
                         benchmarkComment={benchmarkComment}
                         onSubmit={(comment) => {
-                            // Append the new comment to the existing comments in the stream state
-                            const oldCategory = comment.oldCategory;
-                            const oldSectionId = getSectionFromCategory(oldCategory!);
-                            const newCategory = comment.newCategory;
-                        
-                            const itemToMove = comment.jobTitleBenchMarkItem                            
-                            if (!itemToMove) return;
-                            itemToMove.user_category = newCategory;
-                            itemToMove.ai_category = newCategory;
-                            const updatedOldSection = sections[oldSectionId].filter(item => item.benchmark_title_id !== comment.benchmarkItemId);
-                            const updatedNewSection = [...sections[getSectionFromCategory(newCategory)], itemToMove];
-                            const updatedSections: JobTitleSections = {
-                                ...sections,
-                                [oldSectionId]: updatedOldSection,
-                                [getSectionFromCategory(newCategory)]: updatedNewSection
-                            }
 
-                            setSections(updatedSections);
-                            console.log("Updated Sections: High value length", updatedSections['highly-relevant'].length, "Need more info length", updatedSections['needs-more-info'].length, "Definitely not relevant length", updatedSections['definitely-not-relevant'].length);
-                            // find the item in the sections and update its user_comment
-                            setBenchmarkComment(undefined);
-
+                            addCommentToServer(comment);
                         }}
                         onCancel={() => setBenchmarkComment(undefined)}
                     />
