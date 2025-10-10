@@ -9,7 +9,7 @@ import Screen2ReviewBrief from "@/components/screens/screen-2-review-brief"
 import Screen2_5ReviewCompanies from "@/components/screens/screen-2.5-review-companies"
 import Screen3ReviewKeywords from "@/components/screens/screen-3-review-keywords"
 import Screen4SourcingPipeline from "@/components/screens/screen-4-sourcing-pipeline"
-import Screen5ReviewShortlist from "@/components/screens/screen-5-review-shortlist"
+import Screen5ReviewShortlist from "@/components/screens/review/screen-5-review-shortlist"
 import { PromptManager } from "@/components/prompt-manager"
 import { Loader2, ArrowLeft } from "lucide-react"
 import {

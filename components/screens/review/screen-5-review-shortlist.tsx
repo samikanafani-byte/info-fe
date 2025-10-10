@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ExpertCard } from "@/components/expert-card"
-import { ExpertDetailModal } from "@/components/expert-detail-modal"
+import { ExpertDetailModal } from "@/components/screens/review/components/expert-detail-modal"
 import type { Expert } from "@/lib/data"
 import { StreamState } from "@/types/streamState"
 import { convertHighlyRelevantJobFunctionExpertToExpert, convertRankedExpertsToExpert } from "@/types/expertState"
+import { useExpertReview } from "./hooks/useExpertReview"
+import { useExpertReviewStore } from "./store/expertReviewStore"
 
 interface Screen5ReviewShortlistProps {
   streamState: StreamState
@@ -16,39 +18,33 @@ interface Screen5ReviewShortlistProps {
 
 export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, sessionId }: Screen5ReviewShortlistProps) {
 
-
-
   const [shortlisted, setShortlisted] = useState<string[]>([])
-  const [dismissed, setDismissed] = useState<string[]>([])
-  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
-  const highlyRelevant = streamState.experts_state?.highly_relevant_job_function_experts ?? []
-  const highlyRelevantExperts: Expert[] = highlyRelevant.map((item) => convertHighlyRelevantJobFunctionExpertToExpert(item))
-  const ranked = streamState.experts_state?.ranked_experts.results ?? [];
-  const rankedExperts: Expert[] = ranked ? ranked.map((item) => convertRankedExpertsToExpert(item)) : []
-  const experts: Expert[] = [...highlyRelevantExperts, ...rankedExperts]
   
-
   const handleShortlist = (id: string) => {
     setShortlisted((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
+  const visibleExperts = useExpertReviewStore((state) => state.visibleExperts) || []
+  const allExperts = useExpertReviewStore((state) => state.allExperts) || []
+  const selectedExpert = useExpertReviewStore((state) => state.selectedExpert)
 
-  const handleDismiss = (id: string) => {
-    setDismissed((prev) => [...prev, id])
-  }
-
-  const handleViewDetails = (expert: Expert) => {
-    setSelectedExpert(expert)
-  }
+  useEffect(() => {
+    // Load experts data when the component mounts or when streamState/sessionId changes
+    loadExpertsData()
+  }, [])
 
 
-  const visibleExperts = experts.filter((expert) => !dismissed.includes(expert.id))
+
+  // const visibleExperts = experts.filter((expert) => !dismissed.includes(expert.id))
+
+
+  const { loadExpertsData, dismissExpert, handleViewDetails } = useExpertReview(streamState, sessionId);
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto pr-2 -mr-2">
         <h2 className="text-lg font-semibold text-text-primary mb-1">Review & Shortlist</h2>
         <p className="text-sm text-text-secondary mb-4">
-          Showing top {visibleExperts.length} of {experts.length} found experts.{" "}
+          Showing top {visibleExperts.length} of {allExperts.length} found experts.{" "}
           <span className="font-semibold text-primary">{shortlisted.length} shortlisted.</span>
         </p>
 
@@ -60,7 +56,7 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
               expert={expert}
               isShortlisted={shortlisted.includes(expert.id)}
               onShortlist={() => handleShortlist(expert.id)}
-              onDismiss={() => handleDismiss(expert.id)}
+              onDismiss={() => dismissExpert(expert.id)}
               onViewDetails={() => handleViewDetails(expert)}
             />
           ))}
@@ -84,7 +80,7 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
         <ExpertDetailModal
           expert={selectedExpert}
           isOpen={!!selectedExpert}
-          onOpenChange={() => setSelectedExpert(null)}
+          onOpenChange={() => handleViewDetails(null)}
         />
       )}
     </div>

@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
 import type { Expert } from "@/lib/data"
-import { ReasoningTooltip } from "./reasoning-tooltip"
+import { ReasoningTooltip } from "../../../reasoning-tooltip"
 
 interface ExpertDetailModalProps {
   expert: Expert
@@ -31,26 +31,6 @@ export function ExpertDetailModal({ expert, isOpen, onOpenChange }: ExpertDetail
           </div>
           <div>
             <h4 className="font-semibold text-text-primary mb-3">AI Scoring Breakdown</h4>
-            {/* <div className="space-y-3">
-              {expert.scoringBreakdown.map((item) => (
-                <ReasoningTooltip key={item.criteria} content={item.reason}>
-                  <div className="p-3 rounded-md hover:bg-background-subtle cursor-help transition-colors">
-                    <div className="flex justify-between items-center">
-                      <div className="flex-grow">
-                        <p className="font-medium text-sm text-text-primary border-b border-dashed border-gray-400 inline">
-                          {item.criteria}
-                        </p>
-                        <p className="text-xs text-text-secondary mt-1">Weight: {item.weight}</p>
-                      </div>
-                      <Badge variant="secondary" className="flex items-center gap-1 text-primary ml-3">
-                        <Star className="h-3 w-3 text-yellow-500" />
-                        {item.score}/5
-                      </Badge>
-                    </div>
-                  </div>
-                </ReasoningTooltip>
-              ))}
-            </div> */}
             <div className="mt-4 pt-4 border-t border-custom-border flex justify-between items-center">
               <p className="font-semibold text-text-primary">Final Score</p>
               <Badge className="text-base flex items-center gap-1.5 py-1 px-3 bg-primary text-text-on-primary">
