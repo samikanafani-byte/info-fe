@@ -153,14 +153,14 @@ export default function Screen2ReviewBrief({
         <p className="text-sm text-text-secondary mb-4">Review and edit the AI's interpretation of the brief.</p>
         <Accordion type="multiple" defaultValue={["brief", "expertise", "companies"]}>
           {renderEditableItem("brief", "Detailed Brief Decoding", streamState.search_stream.stream_summary)}
-          {renderEditableItem("context_and_knowledge_gap", "Context and Knowledge Gap", streamState.search_stream.detailed_brief_decoding.context_and_knowledge_gap)}
-          {renderEditableItem("end_client_sub_sector", "End Client Sub-Sector", streamState.search_stream.detailed_brief_decoding.end_client_sub_sector)}
-          {renderEditableItem("industries_of_interest", "Industries of Interest", streamState.search_stream.detailed_brief_decoding.industries_of_interest)}
-          {renderEditableItem("sub_sectors_of_interest", "Sub-Sectors of Interest", streamState.search_stream.detailed_brief_decoding.sub_sectors_of_interest)}
-          {renderEditableItem("value_chain_analysis", "Value Chain Analysis", streamState.search_stream.detailed_brief_decoding.value_chain_analysis)}
-          {renderEditableItem("desired_viewpoint_node", "Desired Viewpoint/Node", streamState.search_stream.detailed_brief_decoding.desired_viewpoint_node)}
-          {renderEditableItem("geography", "Geography", streamState.search_stream.detailed_brief_decoding.geography)}
-        {renderEditableItem("project_logistics", "Project Logistics", streamState.search_stream.detailed_brief_decoding.project_logistics)}
+          {renderEditableItem("context_and_knowledge_gap", "Context and Knowledge Gap", streamState.search_stream.detailed_brief_decoding?.context_and_knowledge_gap ?? "N/A")}
+          {renderEditableItem("end_client_sub_sector", "End Client Sub-Sector", streamState.search_stream.detailed_brief_decoding?.end_client_sub_sector ?? "N/A")}
+          {renderEditableItem("industries_of_interest", "Industries of Interest", streamState.search_stream.detailed_brief_decoding?.industries_of_interest ?? "N/A")}
+          {renderEditableItem("sub_sectors_of_interest", "Sub-Sectors of Interest", streamState.search_stream.detailed_brief_decoding?.sub_sectors_of_interest ?? "N/A")}
+          {renderEditableItem("value_chain_analysis", "Value Chain Analysis", streamState.search_stream.detailed_brief_decoding?.value_chain_analysis ?? "N/A")}
+          {renderEditableItem("desired_viewpoint_node", "Desired Viewpoint/Node", streamState.search_stream.detailed_brief_decoding?.desired_viewpoint_node ?? "N/A")}
+          {renderEditableItem("geography", "Geography", streamState.search_stream.detailed_brief_decoding?.geography ?? "N/A")}
+          {renderEditableItem("project_logistics", "Project Logistics", streamState.search_stream.detailed_brief_decoding?.project_logistics ?? "N/A")}
           {/* <AccordionItem value="expertise"> */}
             {/* <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
               Map Needed Expertise
