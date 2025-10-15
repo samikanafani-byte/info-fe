@@ -126,17 +126,7 @@ export default function Screen3ReviewKeywords({
                 onRemove={handleRemoveKeyword}
               />
 
-              // <ReasoningTooltip key={keyword.keyword} content={keyword.proof}>
-              //   <Badge variant="default" className="text-sm py-1 cursor-help bg-secondary text-text-primary">
-              //     {keyword.keyword}
-              //     <button
-              //       onClick={() => handleRemoveKeyword(keyword.category, keyword.keyword)}
-              //       className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5 text-text-secondary"
-              //     >
-              //       <X className="h-3 w-3" />
-              //     </button>
-              //   </Badge>
-              // </ReasoningTooltip>
+              
             ))}
           </div>
           <div className="flex items-center gap-2">
@@ -145,7 +135,6 @@ export default function Screen3ReviewKeywords({
               className="h-8 text-sm"
               value={newKeyword[category] || ""}
               onChange={(e) => handleInputChange(category, e.target.value)}
-              // onKeyDown={(e) => handleInputKeyDown(e, id)}
             />
             <Button size="sm" variant="outline" onClick={() => handleAddKeyword(category, newKeyword[category] || "")}>
               <Plus className="h-4 w-4" />

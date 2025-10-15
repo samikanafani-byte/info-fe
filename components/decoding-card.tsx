@@ -4,11 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { DecodingProcess } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { ChevronRight, CheckCircle2, Loader, AlertCircle } from "lucide-react"
+import { ChevronRight, CheckCircle2, Loader, AlertCircle,Ellipsis } from "lucide-react"
 import { ReasoningTooltip } from "./reasoning-tooltip"
 import { SearchStream } from "@/types/searchStream"
-import { StreamState } from "@/types/streamState"
+import { getChainItems, StreamState } from "@/types/streamState"
 import Tooltip from '@mui/material/Tooltip';
+import AppThoughtChain from "./ui/app-thought-chain"
+import { ThoughtChainItem } from "@ant-design/x"
+import { CheckCircleOutlined, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { THOUGHT_CHAIN_ITEM_STATUS } from "@ant-design/x/es/thought-chain/Item"
+
 interface DecodingCardProps {
   
   stream: StreamState
@@ -19,12 +24,6 @@ const STEPS = ["Brief", "Companies", "Keywords", "Sourcing", "Review"]
 
 
 const getStepName = (status: string) => {
-  //   - decode
-  //   - companies
-  //   - keywords
-  //   - sourcing
-  //   - review
-  //   - completed
   switch (status) {
     case "brief":
       return "Brief"
@@ -61,48 +60,57 @@ export function DecodingCard({ stream, onSelect }: DecodingCardProps) {
         }
       case "in-progress":
       default:
-        return {
-          icon: <Loader className="h-4 w-4 text-primary animate-spin" />,
-          text: `Processing: `,
-          color: "text-primary",
-        }
+        return 
     }
    
   }
+  const getIconForStatus = (status: string) => {
+    switch (status) {
+      case "passed":
+        return <CheckCircleOutlined />;
+      case "current":
+        return <Ellipsis />;
+      case "pending":
+        return undefined;
+      default:
+        return <InfoCircleOutlined />;
+    }
+  }
+  const statusToThoughtChainStatus = (status: string): THOUGHT_CHAIN_ITEM_STATUS|undefined  => {
+    switch (status) {
+      case "passed":
+        return THOUGHT_CHAIN_ITEM_STATUS.SUCCESS
+      case "current":
+        return undefined
+      default:
+        return THOUGHT_CHAIN_ITEM_STATUS.PENDING
+    }
+  }
+  const getThoughtChainsFromStreamState = (streamState: StreamState): ThoughtChainItem[] => {
+    const chainItems = getChainItems(streamState);
+    return chainItems.map((item) => ({
+        title: item.title,
+        status: statusToThoughtChainStatus(item.status),
+        icon: getIconForStatus(item.status),
+    }));
+  }
+
 
   const statusInfo = getStatusInfo()
-
+  
   return (
     <Tooltip title={stream.search_stream.stream_summary} placement="right-start">
       <Card className="bg-background-main border-custom-border hover:shadow-custom focus:shadow-custom transition-shadow cursor-help">
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-base text-text-primary">{stream.search_stream.stream_name}</CardTitle>
           <div className="flex items-center gap-2 text-sm">
-            {statusInfo.icon}
-            <span className={cn("font-semibold", statusInfo.color)}>{statusInfo.text}</span>
+            <AppThoughtChain thoughtChainItems={getThoughtChainsFromStreamState(stream)} />
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-2">
-          <div className="flex justify-between items-end">
-            <div>
-              <p className="text-xs text-text-secondary">Target Companies</p>
-              <p className="font-medium text-text-primary">
-                {stream.matching_companies_in_db?.length ?? 0}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-text-secondary">Keywords</p>
-              <p className="font-medium text-text-primary">
-                {stream?.keywords?.list_of_keywords.length ?? 0}
+          <div className="flex justify-end items-end">
 
-              </p>
-            </div>
-            {/* <div>
-              <p className="text-xs text-text-secondary">Experts Found</p>
-              <p className="font-medium text-text-primary">{decoding.finalExpertCount}</p>
-            </div> */}
             <Button variant="outline" size="sm" onClick={onSelect}>
-              {/* {stream.status === "completed" ? "View Results" : "Continue"} */}
               {"Continue"}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
