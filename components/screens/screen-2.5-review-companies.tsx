@@ -87,7 +87,6 @@ streamState,
 
         <div className="space-y-6">
           <section>
-            <h3 className="text-base font-semibold text-text-primary mb-3">Primary Targets</h3>
             <div className="space-y-2">
               {newStreamState.matching_companies_in_db?.map((company) => (
                 <CompanyCard
@@ -98,19 +97,6 @@ streamState,
               ))}
             </div>
           </section>
-
-          {/* <section>
-            <h3 className="text-base font-semibold text-text-primary mb-3">Secondary & Researched Targets</h3>
-            <div className="space-y-2">
-              {companies.secondary.map((company) => (
-                <CompanyCard
-                  key={company.name}
-                  company={company}
-                  onRemove={() => handleRemoveCompany(company.name, "secondary")}
-                />
-              ))}
-            </div>
-          </section> */}
         </div>
 
         <div className="mt-6 pt-4 border-t border-custom-border">

@@ -19,7 +19,6 @@ interface Screen5ReviewShortlistProps {
 export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, sessionId }: Screen5ReviewShortlistProps) {
 
   const [shortlisted, setShortlisted] = useState<string[]>([])
-  
   const handleShortlist = (id: string) => {
     setShortlisted((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
@@ -32,9 +31,6 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
     loadExpertsData()
   }, [])
 
-
-
-  // const visibleExperts = experts.filter((expert) => !dismissed.includes(expert.id))
 
 
   const { loadExpertsData, dismissExpert, handleViewDetails } = useExpertReview(streamState, sessionId);
