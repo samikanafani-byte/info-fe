@@ -159,44 +159,7 @@ export default function Screen2ReviewBrief({
           {renderEditableItem("value_chain_analysis", "Value Chain Analysis", streamState.search_stream.detailed_brief_decoding?.value_chain_analysis ?? "N/A")}
           {renderEditableItem("desired_viewpoint_node", "Desired Viewpoint/Node", streamState.search_stream.detailed_brief_decoding?.desired_viewpoint_node ?? "N/A")}
           {renderEditableItem("geography", "Geography", streamState.search_stream.detailed_brief_decoding?.geography ?? "N/A")}
-          {/* <AccordionItem value="expertise"> */}
-            {/* <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
-              Map Needed Expertise
-            </AccordionTrigger> */}
-            {/* <AccordionContent>
-              <ul className="list-disc pl-5 space-y-1">
-                {decodedData.expertise.map((item) => (
-                  <li key={item.text} className="text-sm text-text-primary">
-                    <ReasoningTooltip content={item.reasoning}>
-                      <span className="cursor-help border-b border-dashed border-gray-400">{item.text}</span>
-                    </ReasoningTooltip>
-                  </li>
-                ))}
-              </ul>
-            </AccordionContent> */}
-          {/* </AccordionItem> */}
-          <AccordionItem value="companies">
-            <AccordionTrigger className="text-base font-semibold hover:no-underline text-text-primary">
-              Identify Companies of Interest
-            </AccordionTrigger>
-            <AccordionContent className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2 text-text-primary">Primary Targets</h4>
-                <div className="flex flex-wrap gap-2">
-                  {streamState.matching_companies_in_db?.map((c) => (
-                    <ReasoningTooltip key={c} content={c}>
-                      <Badge variant="outline" className="cursor-help border-custom-border text-text-primary">
-                        {c}
-                      </Badge>
-                    </ReasoningTooltip>
-                  ))}
-                </div>
-              </div>
- 
 
-            </AccordionContent>
-          </AccordionItem>
-          
         </Accordion>
       </div>
       <div className="mt-4 space-y-2">

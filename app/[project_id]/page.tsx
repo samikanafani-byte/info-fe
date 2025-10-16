@@ -32,6 +32,8 @@ import Screen5_Sourcing from "@/components/screens/screen-5-sourcing"
 import Screen4_BenchmarkReview from "@/components/screens/screen-4-benchmark-review"
 import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchmark-profiles"
 import PreventClosing from "@/components/screens/preventClosing"
+import AppThoughtChain from "@/components/ui/app-thought-chain"
+import StreamTextComponent from "@/components/ui/stream-text-component"
 
 // Define the expected structure for the component's props
 interface ProjectPageProps {
@@ -490,11 +492,13 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         </div>
                     </div>
                     {activeDecoding && (
-                        <ProgressStepper
-                            steps={STEPS}
-                            currentStep={getStepBasedOnStatus(activeDecoding.status ?? "brief")}
-                            stepIndices={{ decode: 1, companies: 2, keywords: 3, benchmarking: 4, sourcing: 5, review: 7 }}
-                        />
+                        <div className="flex flex-col ">
+                        <div className="flex items-center justify-center">
+                        <AppThoughtChain streamState={activeDecoding} />
+                            
+                        </div>
+                            <StreamTextComponent streamState={activeDecoding} />
+                        </div>
                     )}
                 </header>
                 <main className="flex-grow p-4 overflow-y-auto @container/main">{renderContent()}</main>
