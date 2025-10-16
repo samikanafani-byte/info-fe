@@ -121,19 +121,12 @@ export default function Screen5_Sourcing({
         </div>
 
         <div className="flex-shrink-0 pt-4 mt-4 border-t border-custom-border">
-          {/* <HybridFeedbackInput
-            mentionableItems={items}
-            onUpdate={(content) => setFeedbackText(content)}
-            key={benchmarkData.length}
-          /> */}
+          
           <div className="flex items-center justify-between mt-4">
             <Button variant="link" onClick={onStartSourcing}>
               Skip & Start Sourcing
             </Button>
             <div className="flex items-center space-x-2">
-              {/* <Button variant="outline" onClick={onRebenchmark}>
-                Benchmark More
-              </Button> */}
               <Button onClick={onStartSourcing}>Apply & Start Full Sourcing</Button>
             </div>
           </div>

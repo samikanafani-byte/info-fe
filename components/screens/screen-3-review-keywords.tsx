@@ -126,7 +126,6 @@ export default function Screen3ReviewKeywords({
                 onRemove={handleRemoveKeyword}
               />
 
-              
             ))}
           </div>
           <div className="flex items-center gap-2">
@@ -149,8 +148,6 @@ export default function Screen3ReviewKeywords({
     // handle the approval
     newStreamState.status = "benchmarking_titles"
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
-    // send a request to continue the company check
-    
     onDataChange(newResp)
     onApprove()
   }

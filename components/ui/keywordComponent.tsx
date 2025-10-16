@@ -23,19 +23,6 @@ const KeyWordComponent = ({ category, keyword, onRemove }: KeywordComponentProps
                     </button>
                 </Badge>
             </ReasoningTooltip>
-            {keyword.component_keywords.map((compKeyword) => (
-                <ReasoningTooltip key={compKeyword} content={compKeyword}>
-                    <Badge variant="default" className="text-sm py-1 cursor-help bg-secondary text-text-primary">
-                        {compKeyword}
-                        <button
-                            onClick={() => onRemove(keyword.category,keyword.keyword, compKeyword)}
-                            className="ml-1.5 rounded-full hover:bg-gray-300 p-0.5 text-text-secondary"
-                        >
-                            <X className="h-3 w-3" />
-                        </button>
-                    </Badge>
-                </ReasoningTooltip>
-            ))} 
        </div>
     )
 }

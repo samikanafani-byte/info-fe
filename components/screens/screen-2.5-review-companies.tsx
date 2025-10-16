@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { CompanyCard } from "@/components/company-card"
 import { Plus } from "lucide-react"
 import type { Company } from "@/lib/data"
-import { StreamState } from "@/types/streamState"
+import { getMatchingCompaniesFiltered, StreamState } from "@/types/streamState"
 import { CompanyState, createEmptyCompanyState } from "@/types/companyState"
 
 import { ProjectState } from "@/types/project"
@@ -79,6 +79,8 @@ streamState,
     }
   }
 
+  
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto pr-2 -mr-2">
@@ -88,7 +90,7 @@ streamState,
         <div className="space-y-6">
           <section>
             <div className="space-y-2">
-              {newStreamState.matching_companies_in_db?.map((company) => (
+              {getMatchingCompaniesFiltered(newStreamState)?.map((company) => (
                 <CompanyCard
                   key={company}
                   company={company}
