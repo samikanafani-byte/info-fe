@@ -1,5 +1,4 @@
 import { Expert } from "@/lib/data"
-import { HighlyRelevantJobFunctionExpert } from "@/types/highlyRelevantJobFunctionExpert"
 import { StreamState } from "@/types/streamState"
 import { create } from 'zustand'
 
