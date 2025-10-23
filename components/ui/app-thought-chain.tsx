@@ -11,6 +11,7 @@ import { th } from 'date-fns/locale';
 interface AppThoughtChainProps {
     
     streamState: StreamState;
+    onClick?: (item: ThoughtChainItem, index: number) => void;
 }
 
 
@@ -32,6 +33,7 @@ interface ChainStepProps {
     isLast: boolean;
     nextItemStatus?: ThoughtChainItem['status'];
     isAiProcessing?: boolean;
+    
 }
 
 const ChainStep: React.FC<ChainStepProps> = ({ item, index, isLast, nextItemStatus, isAiProcessing }) => {
@@ -99,7 +101,7 @@ const getThoughtChainsFromStreamState = (streamState: StreamState): ThoughtChain
 }
 
 
-const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState }) => {
+const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState, onClick }) => {
     const [thoughtChainItems, setThoughtChainItems] = useState<ThoughtChainItem[]>(getThoughtChainsFromStreamState(streamState));
     useEffect(() => {
         console.log("StreamState updated in AppThoughtChain:");
@@ -118,7 +120,13 @@ const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState }) => {
     return (
         <div className='w-full py-4 overflow-x-auto'>
             <div className="flex items-start min-w-full">
+                
                 {thoughtChainItems.map((item, index) => (
+                    <div onClick={() => {
+                        if(onClick){
+                            onClick(item, index)
+                        }
+                    }} key={index} className="flex-grow">
                     <ChainStep
                         key={index}
                         item={item}
@@ -127,6 +135,7 @@ const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState }) => {
                         nextItemStatus={thoughtChainItems[index + 1]?.status}
                         isAiProcessing={isAIProcessing(streamState,item.key ?? "")}
                     />
+                    </div>
                 ))}
             </div>
         </div>

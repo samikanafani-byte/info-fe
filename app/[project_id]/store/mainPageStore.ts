@@ -1,7 +1,7 @@
 import { ProjectState } from "@/types/project"
 import { StreamState } from "@/types/streamState"
 import { create } from 'zustand'
-
+export type PageTitle = "decode" | "companies" | "keywords" | "benchmark" | "review"
 export type MainPageState = {
     projectId?: string 
     project?: ProjectState
@@ -13,6 +13,7 @@ export type MainPageState = {
     serverStatus: 'online' | 'offline';
     //socket related states
     isConnected: boolean
+    currentPage: PageTitle
     
     
 }
@@ -27,12 +28,13 @@ type MainPageAction = {
     setIsCorrectingDecodings: (isCorrectingDecodings: boolean) => void
     setServerStatus: (serverStatus: 'online' | 'offline') => void
     setIsLoading: (isLoading: boolean) => void
+    setCurrentPage: (currentPage: PageTitle) => void
 }
 
 const getInitialState = (): MainPageState => ({
     projectId: undefined,
     project: undefined,
-    
+    currentPage: "decode",
     activeDecoding: undefined,
     loadingText: undefined,
     isLoading: false,
@@ -53,4 +55,5 @@ export const useMainPageStore = create<MainPageState & MainPageAction>((set) => 
     setIsConnected: (isConnected: boolean) => set(() => ({ isConnected })),
     setServerStatus: (serverStatus: 'online' | 'offline') => set(() => ({ serverStatus })),
     setIsLoading: (isLoading: boolean) => set(() => ({ isLoading })),
+    setCurrentPage: (currentPage: PageTitle) => set(() => ({ currentPage })),
 }))

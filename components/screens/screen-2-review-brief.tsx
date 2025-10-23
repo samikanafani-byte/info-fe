@@ -75,7 +75,6 @@ export default function Screen2ReviewBrief({
     setEditText("")
   }
   const handleOnApprove = async () => {
-    streamState.status = "companies"
     const newResp = await updateProject(session_id, streamState.stream_id, streamState)
     onDataChange(newResp)
     onApprove()

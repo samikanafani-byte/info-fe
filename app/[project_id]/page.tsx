@@ -451,8 +451,9 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                     {activeDecoding && (
                         <div className="flex flex-col ">
                         <div className="flex items-center justify-center">
-                        <AppThoughtChain streamState={activeDecoding} />
-                            
+                        <AppThoughtChain streamState={activeDecoding} onClick={(item, index) => {
+                            console.log(`Clicked on item ${index}:`, item.key);
+                        }} />
                         </div>
                             <StreamTextComponent streamState={activeDecoding} />
                         </div>
