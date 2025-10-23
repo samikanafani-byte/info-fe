@@ -18,6 +18,7 @@ export interface StreamState {
     needs_more_info_experts?: NeedsMoreInfoExpert[];
     experts_state: ExpertState;
     benchmark_state?: BenchMarkState;
+    running_stages: string[];
 }
 
 function capitalizeFirstLetter(str: string): string {

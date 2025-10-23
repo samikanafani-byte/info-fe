@@ -7,8 +7,11 @@ export type MainPageState = {
     project?: ProjectState
     activeDecoding: StreamState | undefined
     loadingText: string | undefined
+    isLoading: boolean
     isDialogOpen: boolean 
     isCorrectingDecodings: boolean
+    serverStatus: 'online' | 'offline';
+
     
     //socket related states
     isConnected: boolean
@@ -24,6 +27,8 @@ type MainPageAction = {
     setLoadingText: (loadingText: string | undefined) => void
     setIsDialogOpen: (isDialogOpen: boolean) => void
     setIsCorrectingDecodings: (isCorrectingDecodings: boolean) => void
+    setServerStatus: (serverStatus: 'online' | 'offline') => void
+    setIsLoading: (isLoading: boolean) => void
 }
 
 const getInitialState = (): MainPageState => ({
@@ -32,9 +37,11 @@ const getInitialState = (): MainPageState => ({
     
     activeDecoding: undefined,
     loadingText: undefined,
+    isLoading: false,
     isDialogOpen: false,
     isCorrectingDecodings: false,   
     isConnected: false,
+    serverStatus: 'offline',
 })
 
 export const useMainPageStore = create<MainPageState & MainPageAction>((set) => ({
@@ -46,4 +53,6 @@ export const useMainPageStore = create<MainPageState & MainPageAction>((set) => 
     setIsDialogOpen: (isDialogOpen: boolean) => set(() => ({ isDialogOpen })),
     setIsCorrectingDecodings: (isCorrectingDecodings: boolean) => set(() => ({ isCorrectingDecodings })),
     setIsConnected: (isConnected: boolean) => set(() => ({ isConnected })),
+    setServerStatus: (serverStatus: 'online' | 'offline') => set(() => ({ serverStatus })),
+    setIsLoading: (isLoading: boolean) => set(() => ({ isLoading })),
 }))

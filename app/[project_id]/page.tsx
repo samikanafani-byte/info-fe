@@ -3,20 +3,15 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import ProgressStepper from "@/components/progress-stepper"
-import Screen1BriefInput from "@/components/screens/screen-1-brief-input"
+
 import Screen1_5DecodingHub from "@/components/screens/screen-1.5-decoding-hub"
 import Screen2ReviewBrief from "@/components/screens/screen-2-review-brief"
 import Screen2_5ReviewCompanies from "@/components/screens/screen-2.5-review-companies"
 import Screen3ReviewKeywords from "@/components/screens/screen-3-review-keywords"
-import Screen4SourcingPipeline from "@/components/screens/screen-4-sourcing-pipeline"
 import Screen5ReviewShortlist from "@/components/screens/review/screen-5-review-shortlist"
 import { Loader2, ArrowLeft } from "lucide-react"
 import {
-    initialDecodedBrief,
-    initialKeywords,
     initialExperts,
-    initialBenchmarkData,
     secondBenchmarkData,
     type DecodingProcess,
 } from "@/lib/data"
@@ -34,6 +29,8 @@ import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchma
 import PreventClosing from "@/components/screens/preventClosing"
 import AppThoughtChain from "@/components/ui/app-thought-chain"
 import StreamTextComponent from "@/components/ui/stream-text-component"
+import { useMainPage } from "./hooks/useMainPage"
+import { useMainPageStore } from "./store/mainPageStore"
 
 // Define the expected structure for the component's props
 interface ProjectPageProps {
@@ -41,54 +38,32 @@ interface ProjectPageProps {
         project_id: string; // The name must match the folder name: [project_id]
     };
 }
-
-const STEPS = ["Decode", "Companies", "Keywords", "Benchmarking", "Sourcing", "Review"]
-
 export default function ContinueProjectPage({ params }: ProjectPageProps) {
     // Extract the project ID from the params
     const { project_id } = params;
-    console.log("Loaded project ID:", project_id);
+    const activeDecoding = useMainPageStore((state) => state.activeDecoding);
+    const project = useMainPageStore((state) => state.project);
+    
+    const { setIsLoading, setLoadingText,setProject, setIsDialogOpen, handleLoadProject, setActiveDecoding } = useMainPage(project_id);
 
-    const [isLoading, setIsLoading] = useState(true);
+    const isLoading = useMainPageStore((state) => state.isLoading);
     const [decodings, setDecodings] = useState<DecodingProcess[]>([])
-    const [activeDecoding, setActiveDecoding] = useState<StreamState | undefined>(undefined)
-      
-    const [loadingText, setLoadingText] = useState("")
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [isCorrectingDecodings, setIsCorrectingDecodings] = useState(false)
-    const [currentBranch, setCurrentBranch] = useState("john-doe/feature-improvements")
-    const [project, setProject] = useState<ProjectState | null>(null)
-
-    const handleFetchProject = async () => {
-        setIsLoading(true);
-        setLoadingText("Fetching project...")
-        try{
-            const newProject = await getProject(project_id);
-            setProject(newProject);
-            setIsLoading(false);
-            setLoadingText("");
-            setIsDialogOpen(true);
-        }
-        catch(error){
-            console.error("Error fetching project:", error);
-            setIsLoading(false);
-            setLoadingText("");
-        }
-    }
+    const loadingText = useMainPageStore((state) => state.loadingText);
+    const isCorrectingDecodings = useMainPageStore((state) => state.isCorrectingDecodings);
+    const isDialogOpen = useMainPageStore((state) => state.isDialogOpen);
 
 
     useEffect(() => {
-        handleFetchProject();
+        handleLoadProject();
     }, [project_id]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                 e.preventDefault()
-                setIsDialogOpen((prev) => !prev)
+                setIsDialogOpen(!isDialogOpen)
             }
         }
-
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [])
@@ -186,28 +161,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             setIsLoading(false)
         }
     }
-    const getStepBasedOnStatus = (status: string) => {
-        switch (status) {
-            case "decode":
-                return 1
-            case "companies":
-                return 2
-            case "keywords":
-                return 3
-            case "benchmarking_titles":
-                return 4
-            case "benchmarking_profiles":
-                return 5
-            case "validation":
-                return 6
-            case "sourcing":
-                return 6
-            case "completed":
-                return 7
-            default:
-                return 1
-        }
-    }
+
 
     const handleApproveKeywords = async () => {
         setIsLoading(true)
@@ -308,7 +262,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
     const handleApplyFeedback = (feedbackText: string) => {
         setIsLoading(false)
         setLoadingText("Applying feedback and regenerating decodings...")
-        setIsCorrectingDecodings(false)
     }
 
 
