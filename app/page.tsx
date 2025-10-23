@@ -36,6 +36,7 @@ import PreventClosing from "@/components/screens/preventClosing"
 import Link from 'next/link';
 
 import { useRouter } from 'next/navigation';
+import { AcceptResponse } from "@/types/acceptResponse"
 
 //1. Decode
 //2. Companies
@@ -96,13 +97,6 @@ export default function ExpertSearchPage() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  const updateStream = (project: ProjectState) => {
-    setProject(project)
-    const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
-    if (streamState) {
-      setActiveDecoding(streamState)
-    }
-  }
 
   const updateActiveDecoding = (updater: (draft: DecodingProcess) => void) => {
     if (!activeDecoding) return
@@ -145,7 +139,7 @@ export default function ExpertSearchPage() {
     }, 2500)
   }
 
-  const handleStartAnalysis = (project: ProjectState) => {
+  const handleStartAnalysis = (response: AcceptResponse) => {
     setIsLoading(true)
     setLoadingText("Initiating parallel decodings...")
     setTimeout(() => {
@@ -167,9 +161,9 @@ export default function ExpertSearchPage() {
       const initialDecodings = decodingsData.map((d) => createNewDecoding(d.id, d.name, d.reasoning))
       setDecodings(initialDecodings)
       setIsLoading(false)
-      setProject(project)
-      // move to the new page with the project id in the url 
-      router.push(`/${project.session_id}`);
+
+      // move to the new page with the project id in the url
+      router.push(`/${response.session_id}`);
 
 
     }, 1500)
@@ -184,79 +178,12 @@ export default function ExpertSearchPage() {
       const newReasoning = "A new decoding variant to test an alternative sourcing strategy."
       const newDecoding = createNewDecoding(newId, newName, newReasoning)
       setDecodings((prev) => [...prev, newDecoding])
-      // setActiveDecodingId(newId)
       setIsLoading(false)
     }, 1500)
   }
 
-  const handleApproveBrief = async () => {
-    setIsLoading(true)
-    setLoadingText("Preparing Company Review...")
-    try {
-      const projectState = await continueProject(project?.session_id || "")
-      setProject(projectState)
-      updateActiveDecoding((draft) => {
-        draft.step = 2
-      })
-      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
-    } catch (error) {
-      console.error("Error continuing project:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
-  const handleApproveCompanies = async () => {
-    setIsLoading(true)
-    
-    setLoadingText("Generating Keywords...")
-    try{
-      const projectState = await continueProject(project?.session_id || "")
-      setProject(projectState)
-      updateActiveDecoding((draft) => {
-        draft.step = 5
-      })
-      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
-    }catch(error){
-      console.error("Error continuing project:", error)
-    }finally{
-      setIsLoading(false)
-    }
-  }
 
-  const handleApproveBenchmarkTitles = async () => {
-    setIsLoading(true)
-    setLoadingText("Preparing Benchmark Profiles...")
-    try{
-      const projectState = await continueProject(project?.session_id || "")
-      setProject(projectState)
-      updateActiveDecoding((draft) => {
-        draft.step = 4
-      })
-      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
-    }catch(error){
-      console.error("Error continuing project:", error)
-    }finally{
-      setIsLoading(false)
-    }
-  }
-
-  const handleApproveExperts = async () => {
-    setIsLoading(true)
-    setLoadingText("Starting the sourcing process...")
-    try {
-      const projectState = await continueProject(project?.session_id || "")
-      setProject(projectState)
-      updateActiveDecoding((draft) => {
-        draft.step = 4
-      })
-      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
-    } catch (error) {
-      console.error("Error continuing project:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
   const getStepBasedOnStatus = (status: string) => {
     switch (status) {
       case "decode":
@@ -280,84 +207,6 @@ export default function ExpertSearchPage() {
     }
   }
 
-  const handleApproveKeywords = async() => {
-    setIsLoading(true)
-    setLoadingText("AI is preparing a benchmark sample...")
-    try{
-
-      const projectState = await continueProject(project?.session_id || "")
-      setProject(projectState)
-      updateActiveDecoding((draft) => {
-        draft.step = 4
-      })
-      setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
-    }catch(error){
-      console.error("Error continuing project:", error)
-    }finally{
-      setIsLoading(false)
-    }
-  }
-
-  const handleStartFullSourcing = async () => {
-    setIsLoading(true)
-
-
-    setLoadingText("Starting full-scale sourcing...")
-    try{
-        //send the request to continue the project
-        const projectState = await continueProject(project?.session_id || "")
-        setProject(projectState)
-        updateActiveDecoding((draft) => {
-          draft.step = 6
-        })
-        setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
-    }catch(error){
-      console.error("Error updating project:", error)
-    
-    }finally{
-      setIsLoading(false)
-    }
-
-  }
-
-  const handleRebenchmark = () => {
-    setIsLoading(true)
-    setLoadingText("Calibrating and preparing new benchmark...")
-    setTimeout(() => {
-      updateActiveDecoding((draft) => {
-        draft.benchmarkData = secondBenchmarkData
-        draft.benchmarkRound += 1
-      })
-      setIsLoading(false)
-    }, 2500)
-  }
-
-  const handleViewResults = () => {
-    setIsLoading(true)
-    setLoadingText("Finalizing expert list...")
-    setTimeout(() => {
-      updateActiveDecoding((draft) => {
-        draft.step = 6
-        draft.status = "completed"
-        draft.finalExpertCount = initialExperts.length
-        draft.experts = initialExperts
-      })
-      setIsLoading(false)
-    }, 1000)
-  }
-  const handleSelectDecoding = async (decoding: StreamState) => {
-    //patch the stream_state to make the status decode
-    decoding.status = "decode"
-    try{
-      const newResp = await updateProject(project?.session_id || "", decoding.stream_id, decoding)
-      const stream_to_set = newResp.stream_states.find(s => s.stream_id === decoding.stream_id)
-      setActiveDecoding(stream_to_set)
-    }
-    catch(error){
-      console.error("Error updating project:", error)
-    }  
-  }
-
 
 
   const renderContent = () => {
@@ -375,15 +224,17 @@ export default function ExpertSearchPage() {
 
     if (!activeDecoding) {
       if (project) {
-        return (
-          <Screen1_5DecodingHub
-            project_state={project}
-            onStartNewDecoding={handleStartNewDecoding}
-            onSelectDecoding={handleSelectDecoding}
-            isCorrecting={isCorrectingDecodings}
-            onApplyFeedback={handleApplyFeedback}
-          />
-        )
+        // return (
+        //   <Screen1_5DecodingHub
+        //     project_state={project}
+        //     onStartNewDecoding={handleStartNewDecoding}
+        //     onSelectDecoding={handleSelectDecoding}
+        //     isCorrecting={isCorrectingDecodings}
+        //     onApplyFeedback={handleApplyFeedback}
+        //   />
+          
+        // )
+        return <div></div>
       }
       return <Screen1BriefInput onStartAnalysis={handleStartAnalysis} />
     }

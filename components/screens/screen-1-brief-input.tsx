@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ProjectState } from "@/types/project"
 import { createProject } from "@/services/projectService"
+import { AcceptResponse } from "@/types/acceptResponse"
 
 interface Screen1BriefInputProps {
-  onStartAnalysis: (project: ProjectState) => void
+  onStartAnalysis: (project: AcceptResponse) => void
 }
 
 export default function Screen1BriefInput({ onStartAnalysis }: Screen1BriefInputProps) {

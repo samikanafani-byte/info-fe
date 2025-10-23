@@ -70,6 +70,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
 
     const updateStream = (project: ProjectState) => {
         setProject(project)
+        if(project.stream_states===undefined) return
         const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
         if (streamState) {
             setActiveDecoding(streamState)
@@ -102,6 +103,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             updateActiveDecoding((draft) => {
                 draft.step = 2
             })
+            if(projectState.stream_states===undefined) return
             setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
@@ -120,6 +122,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             updateActiveDecoding((draft) => {
                 draft.step = 5
             })
+            if(projectState.stream_states===undefined) return
             setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
@@ -137,6 +140,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             updateActiveDecoding((draft) => {
                 draft.step = 4
             })
+            if(projectState.stream_states===undefined) return
             setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
@@ -154,6 +158,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             updateActiveDecoding((draft) => {
                 draft.step = 4
             })
+            if(projectState.stream_states===undefined) return
             setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
@@ -173,6 +178,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             updateActiveDecoding((draft) => {
                 draft.step = 4
             })
+            if (projectState.stream_states === undefined) return
             setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
@@ -193,6 +199,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             updateActiveDecoding((draft) => {
                 draft.step = 6
             })
+            if (projectState.stream_states === undefined) return
             setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error updating project:", error)
@@ -236,10 +243,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             const newId = `decoding-${decodings.length + 1}`
             const newName = `Decoding Variant #${decodings.length - 1}`
             const newReasoning = "A new decoding variant to test an alternative sourcing strategy."
-            // const newDecoding = createNewDecoding(newId, newName, newReasoning)
-            // setDecodings((prev) => [...prev, newDecoding])
-            // // setActiveDecodingId(newId)
-            // setIsLoading(false)
         }, 1500)
     }
 
@@ -252,6 +255,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         }
         try {
             const newResp = await updateProject(project?.session_id || "", decoding.stream_id, decoding)
+            if (newResp.stream_states === undefined) return
             const stream_to_set = newResp.stream_states.find(s => s.stream_id === decoding.stream_id)
             setActiveDecoding(stream_to_set)
         }

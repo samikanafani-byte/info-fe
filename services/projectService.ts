@@ -1,9 +1,10 @@
+import { AcceptResponse } from "@/types/acceptResponse";
 import { ProjectState } from "@/types/project";
 import { StreamState } from "@/types/streamState";
 import getAxiosInstance from "@/utils/axiosInstance";
 
 
-export const createProject = async (request_email: string): Promise<ProjectState> => {
+export const createProject = async (request_email: string): Promise<AcceptResponse> => {
     const axiosInstance = getAxiosInstance();
     try {
         const response = await axiosInstance.post('/projects', { request_email });

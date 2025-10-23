@@ -11,8 +11,6 @@ export type MainPageState = {
     isDialogOpen: boolean 
     isCorrectingDecodings: boolean
     serverStatus: 'online' | 'offline';
-
-    
     //socket related states
     isConnected: boolean
     
