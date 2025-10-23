@@ -1,4 +1,5 @@
 import { getStreamTextTitle, getThoughtTitle, StreamState } from "@/types/streamState";
+import { use, useEffect } from "react";
 
 interface StreamTextComponentProps {
     streamState: StreamState;
@@ -6,10 +7,9 @@ interface StreamTextComponentProps {
 
 const StreamTextComponent: React.FC<StreamTextComponentProps> = ({ streamState }: StreamTextComponentProps) => {
 
-    const getStatusText = (): string =>{
-        
-        return ""
-    }
+    useEffect(() => {
+        console.log("StreamTextComponent rendered with streamState:", streamState);
+    }, [streamState]);
     return (
         <div className="text-sm font-bold text-gray-700">
             {getStreamTextTitle(streamState)}

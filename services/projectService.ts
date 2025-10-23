@@ -39,7 +39,7 @@ export const updateProject = async (session_id: string, stream_id: string,  upda
 }
 
 
-export const continueProject = async (session_id: string): Promise<ProjectState> => {
+export const continueProject = async (session_id: string): Promise<AcceptResponse> => {
     const axiosInstance = getAxiosInstance();
     try {
         const response = await axiosInstance.post(`/projects/${session_id}/continue`);

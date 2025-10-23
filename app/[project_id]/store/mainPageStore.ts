@@ -1,7 +1,7 @@
 import { ProjectState } from "@/types/project"
 import { StreamState } from "@/types/streamState"
 import { create } from 'zustand'
-export type PageTitle = "decode" | "companies" | "keywords" | "benchmark" | "review"
+export type PageTitle = "decode" | "companies" | "keywords" | "benchmarking_titles" | "benchmarking_profiles" | "review"
 export type MainPageState = {
     projectId?: string 
     project?: ProjectState
@@ -29,6 +29,7 @@ type MainPageAction = {
     setServerStatus: (serverStatus: 'online' | 'offline') => void
     setIsLoading: (isLoading: boolean) => void
     setCurrentPage: (currentPage: PageTitle) => void
+    updateProjectStream: (streamId: string, updateFn: (stream: StreamState) => StreamState) => void;
 }
 
 const getInitialState = (): MainPageState => ({
@@ -56,4 +57,28 @@ export const useMainPageStore = create<MainPageState & MainPageAction>((set) => 
     setServerStatus: (serverStatus: 'online' | 'offline') => set(() => ({ serverStatus })),
     setIsLoading: (isLoading: boolean) => set(() => ({ isLoading })),
     setCurrentPage: (currentPage: PageTitle) => set(() => ({ currentPage })),
+    updateProjectStream: (streamId, updateFn) => set((state) => {
+
+        
+        if (!state.project || !state.project.stream_states) {
+            console.warn("Cannot update stream: No project or stream states.");
+            return state;
+        }
+
+        const updatedStreamStates = state.project.stream_states.map(s => {
+            if (s.stream_id === streamId) {
+                // Apply the update function to the found stream
+                return updateFn(s);
+            }
+            return s; // Keep other streams as they are
+        });
+
+        // Return the new state object
+        return {
+            project: {
+                ...state.project,
+                stream_states: updatedStreamStates,
+            },
+        };
+    }),
 }))
