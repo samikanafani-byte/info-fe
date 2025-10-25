@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +37,10 @@ export default function Screen3ReviewKeywords({
   const functionKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "function") ?? []
   const knowledgeKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "knowledge_gap") ?? []
   const seniorityKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "seniority") ?? []
+  
+  useEffect(() => {
+    setNewStreamState(streamState)
+  }, [streamState])
 
 
   const handleRemoveKeyword = async (category: string, keywordToRemove: string, componentKeyword?: string) => {
@@ -62,7 +66,7 @@ export default function Screen3ReviewKeywords({
     newStreamState.keywords.list_of_keywords = keyWordList
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     onDataChange(newResp)
-    const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+    const stream_to_set = newResp.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
     if (stream_to_set){
       setNewStreamState(stream_to_set)
     }
@@ -88,7 +92,7 @@ export default function Screen3ReviewKeywords({
     
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     onDataChange(newResp)
-    const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+    const stream_to_set = newResp.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
     if (stream_to_set){
       setNewStreamState(stream_to_set)
     }

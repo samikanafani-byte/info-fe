@@ -12,7 +12,7 @@ export interface ExpertState{
     project_decoding?: DetailedBriefDecoding
     keywords?: Keywords
     stream_summary?: string
-    ranked_experts: RankedExperts
+    ranked_experts?: RankedExperts
 }
 
 

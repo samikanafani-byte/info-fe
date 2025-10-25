@@ -29,6 +29,7 @@ export interface OnBenchmarkTitleItemsAddedEvent {
     event_type: "benchmark_title_items_added";
     benchmark_title_items: JobTitleBenchmark[];
     stream_id: string;
+    benchmark_state_id: string;
 }
 
 /** Corresponds to OnBenchmarkExpertRankItemsAdded */
@@ -36,6 +37,7 @@ export interface OnBenchmarkExpertRankItemsAddedEvent {
     event_type: "benchmark_expert_rank_items_added";
     benchmark_expert_rank_items: RankedExpert[]; // Corresponds to a list of dicts from model_dump()
     stream_id: string;
+    benchmark_state_id: string;
 }
 
 /** Corresponds to OnHighlyRelevantJobFunctionExpertsAdded */

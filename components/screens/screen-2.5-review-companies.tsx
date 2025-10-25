@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { use, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CompanyCard } from "@/components/company-card"
@@ -33,6 +33,10 @@ streamState,
   const [newCompany, setNewCompany] = useState("")
   const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
 
+  useEffect(() => {
+    setNewStreamState(streamState)
+  }, [streamState])
+
   const handleRemoveCompany = async (company: string) => {
     const updatedCompanies = {
       ...newStreamState,
@@ -41,7 +45,7 @@ streamState,
     try{
       const newResp = await updateProject(sessionId, updatedCompanies.stream_id, updatedCompanies)
       onDataChange(newResp)
-      const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+      const stream_to_set = newResp?.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
       if (stream_to_set){
         setNewStreamState(stream_to_set)
       } 
@@ -50,9 +54,9 @@ streamState,
     }
   }
   const handleApprove = async () => {
-    newStreamState.status = "keywords"
-    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
-    onDataChange(newResp)
+    
+    // const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    // onDataChange(newResp)
     onApprove()
   }
 
@@ -66,7 +70,7 @@ streamState,
         }
         const newResp = await updateProject(sessionId, newStreamState.stream_id, updatedCompanies)
         onDataChange(newResp)
-        const stream_to_set = newResp.stream_states.find(s => s.stream_id === newStreamState.stream_id)
+        const stream_to_set = newResp?.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
         if (stream_to_set) {
           setNewStreamState(stream_to_set)
         } 

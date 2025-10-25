@@ -96,6 +96,8 @@ export const getThoughtTitle = (stage: string) => {
             return "Benchmark Titles"
         case "benchmarking_profiles":
             return "Benchmark Profiles"
+        case 'sourcing':
+            return "Review"
         case 'review':
             return "Review"
         case 'completed':
@@ -161,7 +163,7 @@ export type ChainItem = {
 }
 export function getChainItems(streamState: StreamState): ChainItem[] {
 
-    const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "benchmarking_profiles", "review"];
+    const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "benchmarking_profiles", "sourcing"];
     const thoughtChains = pageTitles.map((stage) => ({
         key: stage,
         title: getThoughtTitle(stage),

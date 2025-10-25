@@ -35,25 +35,57 @@ export default function Screen4_5_BenchmarkProfiles({ sessionId,
     onStartSourcing,
     onRebenchmark}: Screen4_5_BenchmarkProfilesProps) {
 
+    useEffect(() => {
+        setNewStreamState(streamState)
+
+        setBenchMarkState(streamState.benchmark_state)
+        const highlyRelevant = streamState.benchmark_state?.expert_rank_list?.results?.filter(j => j.category === 'highly_relevant') ?? []
+        const needsMoreInfo = streamState.benchmark_state?.expert_rank_list?.results?.filter(j => j.category === 'needs_more_info') ?? []
+        const definitelyNotRelevant = streamState.benchmark_state?.expert_rank_list?.results?.filter(j => j.category === 'definitely_not_relevant') ?? []
+        setAllSectionsFilled({
+            'highly-relevant': highlyRelevant,
+            'needs-more-info': needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevant,
+        })
+        setSections({
+            'highly-relevant': highlyRelevant,
+            'needs-more-info': needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevant,
+        })
+
+        setInitialSections({
+            'highly-relevant': highlyRelevant,  
+            'needs-more-info': needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevant,
+
+        })
+        setSectionIds(['highly-relevant', 'needs-more-info', 'definitely-not-relevant'])
+        setTotalSectionsCount(highlyRelevant.length + needsMoreInfo.length + definitelyNotRelevant.length)
+        
+    }, [streamState])
+
     const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const benchMarkState = newStreamState.benchmark_state;
+    const [benchMarkState, setBenchMarkState] = useState(newStreamState.benchmark_state);
+    
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
-    const allSectionsFilled: ExpertSections = {
+
+    const [allSectionsFilled, setAllSectionsFilled] = useState<ExpertSections>({
         'highly-relevant': benchMarkState?.expert_rank_list?.results?.filter(j => j.category === 'highly_relevant') ?? [],
         'needs-more-info': benchMarkState?.expert_rank_list?.results?.filter(j => j.category === 'needs_more_info') ?? [],
         'definitely-not-relevant': benchMarkState?.expert_rank_list?.results?.filter(j => j.category === 'definitely_not_relevant') ?? [],
-
-    }
+    });
     const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(allSectionsFilled['highly-relevant'].length > 4 ? 4 : null)
     const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(allSectionsFilled['needs-more-info'].length > 4 ? 4 : null)
     const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(allSectionsFilled['definitely-not-relevant'].length > 4 ? 4 : null)
 
-    const initialSections: ExpertSections = {
-        'highly-relevant': highlyRelevantIndex ? allSectionsFilled['highly-relevant'].slice(0, highlyRelevantIndex) : allSectionsFilled['highly-relevant'],
-        'needs-more-info': needMoreInfoIndex ? allSectionsFilled['needs-more-info'].slice(0, needMoreInfoIndex) : allSectionsFilled['needs-more-info'],
-        'definitely-not-relevant': definitelyNotRelevantIndex ? allSectionsFilled['definitely-not-relevant'].slice(0, definitelyNotRelevantIndex) : allSectionsFilled['definitely-not-relevant'],
-    };
+
+    
+    const [initialSections, setInitialSections] = useState<ExpertSections>({
+        'highly-relevant': highlyRelevantIndex !== null ? allSectionsFilled['highly-relevant'].slice(0, highlyRelevantIndex) : allSectionsFilled['highly-relevant'],
+        'needs-more-info': needMoreInfoIndex !== null ? allSectionsFilled['needs-more-info'].slice(0, needMoreInfoIndex) : allSectionsFilled['needs-more-info'],
+        'definitely-not-relevant': definitelyNotRelevantIndex !== null ? allSectionsFilled['definitely-not-relevant'].slice(0, definitelyNotRelevantIndex) : allSectionsFilled['definitely-not-relevant'],
+    });
     const [showHistory, setShowHistory] = useState<boolean>(false);
     const [benchmarkComment, setBenchmarkComment] = useState<BenchmarkComment | undefined>(undefined);
 
@@ -87,8 +119,10 @@ export default function Screen4_5_BenchmarkProfiles({ sessionId,
 
 
     const [sections, setSections] = useState<ExpertSections>(initialSections);
-    const sectionIds = useMemo(() => Object.keys(sections), [sections]) as SectionId[];
-    const totalSectionsCount = sections['highly-relevant'].length + sections['needs-more-info'].length + sections['definitely-not-relevant'].length;
+    // const sectionIds = useMemo(() => Object.keys(sections), [sections]) as SectionId[];
+    const [sectionIds, setSectionIds] = useState<SectionId[]>(['highly-relevant', 'needs-more-info', 'definitely-not-relevant']);
+    // const totalSectionsCount = sections['highly-relevant'].length + sections['needs-more-info'].length + sections['definitely-not-relevant'].length;
+    const [totalSectionsCount, setTotalSectionsCount] = useState<number>(sections['highly-relevant'].length + sections['needs-more-info'].length + sections['definitely-not-relevant'].length);
 
     useEffect(() => {
 

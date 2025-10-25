@@ -19,6 +19,7 @@ interface Screen5ReviewShortlistProps {
 export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, sessionId }: Screen5ReviewShortlistProps) {
 
   const [shortlisted, setShortlisted] = useState<string[]>([])
+  const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
   const handleShortlist = (id: string) => {
     setShortlisted((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
@@ -28,12 +29,14 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
 
   useEffect(() => {
     // Load experts data when the component mounts or when streamState/sessionId changes
+    setNewStreamState(streamState)
     loadExpertsData()
-  }, [])
+    
+  }, [streamState])
 
 
 
-  const { loadExpertsData, dismissExpert, handleViewDetails } = useExpertReview(streamState, sessionId);
+  const { loadExpertsData, dismissExpert, handleViewDetails } = useExpertReview(newStreamState, sessionId);
 
   return (
     <div className="flex flex-col h-full">

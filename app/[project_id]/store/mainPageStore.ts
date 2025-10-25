@@ -1,7 +1,7 @@
 import { ProjectState } from "@/types/project"
 import { StreamState } from "@/types/streamState"
 import { create } from 'zustand'
-export type PageTitle = "decode" | "companies" | "keywords" | "benchmarking_titles" | "benchmarking_profiles" | "review"
+export type PageTitle = "decode" | "companies" | "keywords" | "benchmarking_titles" | "benchmarking_profiles" | "sourcing"
 export type MainPageState = {
     projectId?: string 
     project?: ProjectState

@@ -2,26 +2,7 @@ import { useMainPageStore } from "../store/mainPageStore"
 import { useEffect, useCallback } from 'react';
 import { getSocket } from "@/lib/sockets/socket";
 import { getProject } from "@/services/projectService";
-
 import { WebSocketEvent } from "../types/event";
-import { ProjectState } from "@/types/project";
-import { StreamState } from "@/types/streamState";
-
-const getStreamFromProject = (project: ProjectState, streamId: string): StreamState | undefined => {
-    
-    console.log("Getting stream from project:", project, streamId);
-    console.log("Project stream states:", project.stream_states);
-    console.log("Searching in projectId:", project.session_id);
-    if (!project || !project.stream_states) {
-        console.warn("No current project or stream states found in store.");
-        return;
-    }
-    const stream = project.stream_states.find(s => s.stream_id === streamId);
-    if (!stream) {
-        console.warn(`Stream with ID ${streamId} not found in current project.`);
-        return;
-    }
-}
 
 export const useMainPage = (projectId: string) => {
     const setProjectId = useMainPageStore((state) => state.setProjectId);
@@ -124,8 +105,111 @@ export const useMainPage = (projectId: string) => {
                     break;
                 }
 
-                // ... repeat this pattern for all other cases
+                case "benchmark_title_items_added":{
+                    console.log("Benchmark title items added:", event.benchmark_title_items.length);
 
+                    updateProjectStream(event.stream_id, (stream) => {
+                        if(!stream.benchmark_state){
+                            stream.benchmark_state = { 
+                                benchmark_state_id: event.benchmark_state_id,
+                                benchmark_titles: {
+                                results: []
+                            }, 
+                             };
+                        }
+                        if(!stream.benchmark_state.benchmark_titles){
+                            stream.benchmark_state.benchmark_titles = { results: [] };
+                        }
+                        
+                        const newTitles = [...stream.benchmark_state.benchmark_titles.results, ...event.benchmark_title_items];
+                        console.log("Updated benchmark titles in stream:", newTitles.length);
+                        
+                        return {    
+                            ...stream,
+                            benchmark_state: {
+                                ...stream.benchmark_state,
+                                benchmark_titles: {
+                                    ...stream.benchmark_state.benchmark_titles,
+                                    results: newTitles
+                                }
+                            }
+                        };
+                    });
+                    break;  
+                }
+                case "benchmark_expert_rank_items_added":{
+                    console.log("Benchmark expert rank items added:", event.benchmark_expert_rank_items.length);
+                    updateProjectStream(event.stream_id, (stream) => {
+                        if(!stream.benchmark_state){
+                            
+                            stream.benchmark_state = { 
+                                benchmark_state_id: event.benchmark_state_id,
+                                expert_rank_list: { results: [] } 
+                            };
+                        }
+                        if(!stream.benchmark_state.expert_rank_list){
+                            stream.benchmark_state.expert_rank_list = { results: [] };
+                        }
+                        const newExpertRanks = [...stream.benchmark_state.expert_rank_list?.results ?? [], ...event.benchmark_expert_rank_items];
+                        console.log("Updated benchmark expert ranks in stream:", newExpertRanks.length);
+                        return {
+                            ...stream,
+                            benchmark_state: {
+                                ...stream.benchmark_state,
+                                expert_rank_list: {
+                                    ...stream.benchmark_state.expert_rank_list,
+                                    results: newExpertRanks
+                                }
+                            }
+                        };
+                    });
+                    break;                    
+                }
+                case "highly_relevant_job_function_experts_added":{
+                    console.log("Highly relevant job function experts added:", event.highly_relevant_experts.length);
+                    updateProjectStream(event.stream_id, (stream) => {
+                        if(!stream.experts_state){
+                            stream.experts_state = { highly_relevant_job_function_experts:[] };
+                        }
+                        if(!stream.experts_state.highly_relevant_job_function_experts){
+                            stream.experts_state.highly_relevant_job_function_experts = [];
+                        }
+                        const newHighlyRelevantExperts = [...stream.experts_state.highly_relevant_job_function_experts, ...event.highly_relevant_experts];
+                        console.log("Updated highly relevant job function experts in stream:", newHighlyRelevantExperts.length);
+                        return {
+                            ...stream,
+                            experts_state: {
+                                ...stream.experts_state,
+                                highly_relevant_job_function_experts: newHighlyRelevantExperts
+                            }
+                        };
+                    });
+                    break;
+                }
+                case "ranked_experts_added":{
+                    console.log("Ranked experts added:", event.expert_ranks.length);
+                    updateProjectStream(event.stream_id, (stream) => {
+                        if(!stream.experts_state){
+                            stream.experts_state = { ranked_experts: { results: [] } };
+                        }
+                        if(!stream.experts_state.ranked_experts){
+                            stream.experts_state.ranked_experts = { results: [] };
+                        }
+                        const newRankedExperts = [...stream.experts_state.ranked_experts?.results ?? [], ...event.expert_ranks];
+                        console.log("Updated ranked experts in stream:", newRankedExperts.length);
+                        return {
+                            ...stream,
+                            experts_state: {
+                                ...stream.experts_state,
+                                ranked_experts: {
+                                    ...stream.experts_state.ranked_experts,
+                                    results: newRankedExperts
+                                }
+                            }
+                        };
+                    });
+                    break;
+                }
                 case "running_stage_started":
                     console.log(`Running stage started: ${event.stage_name}`);
                     if (event.stage_name) {
@@ -157,7 +241,7 @@ export const useMainPage = (projectId: string) => {
                     break;
 
                 default:
-                // ...
+                    console.warn("Unhandled event type:", event);
             
             }
 

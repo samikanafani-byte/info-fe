@@ -73,6 +73,12 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
 
     useEffect(() => {
         //rerender when project changes
+        //update the active decoding
+        if(!project || !project.stream_states) return
+        const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
+        if (streamState) {
+            setActiveDecoding(streamState)
+        }
     }, [project])
 
     const updateStream = (project: ProjectState) => {
@@ -95,10 +101,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             }),
         )
     }
-
-
-
-
 
 
     const handleApproveBrief = async () => {
@@ -124,10 +126,8 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
 
     const handleApproveCompanies = async () => {
         setIsLoading(true)
-
-        setLoadingText("Generating Keywords...")
+        setLoadingText("Moviing to keywords...")
         try {
-            const projectState = await continueProject(project?.session_id || "")
             setCurrentPage("keywords")
         } catch (error) {
             console.error("Error continuing project:", error)
@@ -154,7 +154,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Starting the sourcing process...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setCurrentPage("review")
+            setCurrentPage("sourcing")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -169,12 +169,8 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         try {
 
             const projectState = await continueProject(project?.session_id || "")
-            // setProject(projectState)
-            // updateActiveDecoding((draft) => {
-            //     draft.step = 4
-            // })
-            // if (projectState.stream_states === undefined) return
-            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            setCurrentPage("benchmarking_titles")
+            
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -333,7 +329,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                     onRebenchmark={() => { }}
                 />
             
-            case "review":
+            case "sourcing":
                 return (
                     <Screen5ReviewShortlist
                         streamState={activeDecoding}
