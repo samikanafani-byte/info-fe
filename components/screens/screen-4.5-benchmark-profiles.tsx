@@ -75,10 +75,9 @@ export default function Screen4_5_BenchmarkProfiles({ sessionId,
         'needs-more-info': benchMarkState?.expert_rank_list?.results?.filter(j => j.category === 'needs_more_info') ?? [],
         'definitely-not-relevant': benchMarkState?.expert_rank_list?.results?.filter(j => j.category === 'definitely_not_relevant') ?? [],
     });
-    const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(allSectionsFilled['highly-relevant'].length > 4 ? 4 : null)
-    const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(allSectionsFilled['needs-more-info'].length > 4 ? 4 : null)
-    const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(allSectionsFilled['definitely-not-relevant'].length > 4 ? 4 : null)
-
+    const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(4)
+    const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(4)
+    const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(4)
 
     
     const [initialSections, setInitialSections] = useState<ExpertSections>({
@@ -190,6 +189,7 @@ export default function Screen4_5_BenchmarkProfiles({ sessionId,
         newStreamState.status = "validation"
         try {
             setSubmitLoading(true)
+            
             const updatedProject = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
             onStartSourcing();
         }

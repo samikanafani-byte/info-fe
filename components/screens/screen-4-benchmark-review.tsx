@@ -47,21 +47,21 @@ export default function Screen4_BenchmarkReview({
         const needsMoreInfo = benchmarkTitles.filter(j => j.ai_category === 'needs_more_info');
         const definitelyNotRelevant = benchmarkTitles.filter(j => j.ai_category === 'definitely_not_relevant');
         setAllSectionsFilled({
-            'highly-relevant': highlyRelevant,
-            'needs-more-info': needsMoreInfo,
-            'definitely-not-relevant': definitelyNotRelevant,
+            'highly-relevant': highlyRelevantIndex ? highlyRelevant.slice(0, highlyRelevantIndex) : highlyRelevant,
+            'needs-more-info': needMoreInfoIndex ? needsMoreInfo.slice(0, needMoreInfoIndex) : needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevantIndex ? definitelyNotRelevant.slice(0, definitelyNotRelevantIndex) : definitelyNotRelevant,
         });
         setSections({
-            'highly-relevant': highlyRelevant,
-            'needs-more-info': needsMoreInfo,
-            'definitely-not-relevant': definitelyNotRelevant,
+            'highly-relevant': highlyRelevantIndex ? highlyRelevant.slice(0, highlyRelevantIndex) : highlyRelevant,
+            'needs-more-info': needMoreInfoIndex ? needsMoreInfo.slice(0, needMoreInfoIndex) : needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevantIndex ? definitelyNotRelevant.slice(0, definitelyNotRelevantIndex) : definitelyNotRelevant,
         });
         setInitialSections({
             'highly-relevant': highlyRelevantIndex ? highlyRelevant.slice(0, highlyRelevantIndex) : highlyRelevant,
             'needs-more-info': needMoreInfoIndex ? needsMoreInfo.slice(0, needMoreInfoIndex) : needsMoreInfo,
             'definitely-not-relevant': definitelyNotRelevantIndex ? definitelyNotRelevant.slice(0, definitelyNotRelevantIndex) : definitelyNotRelevant,
         });
-        
+
 
     }, [streamState])
     
@@ -82,9 +82,9 @@ export default function Screen4_BenchmarkReview({
 
     //first 4 of each section
 
-    const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(allSectionsFilled['highly-relevant'].length > 4 ? 4 : null)
-    const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(allSectionsFilled['needs-more-info'].length > 4 ? 4 : null)
-    const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(allSectionsFilled['definitely-not-relevant'].length > 4 ? 4 : null)
+    const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(4)
+    const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(4)
+    const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(4)
 
 
 
