@@ -1,22 +1,18 @@
 "use client"
 
 import { useMemo,useCallback, useEffect, useState } from "react"
-import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core"
 import { Button } from "@/components/ui/button"
 import { Accordion } from "@/components/ui/accordion"
 import { DroppableAccordionItem } from "@/components/droppable-accordion-item"
-import { BenchmarkKanbanColumn } from "@/components/benchmark-kanban-column"
-import type { BenchmarkCategory, JobTitleBenchmarkItem } from "@/lib/data"
+import type {JobTitleBenchmarkItem } from "@/lib/data"
 import { HybridFeedbackInput } from "@/components/hybrid-feedback-input"
 import { StreamState } from "@/types/streamState"
-import { HighlyRelevantJobFunctionExpert } from "@/types/highlyRelevantJobFunctionExpert"
-import { NeedsMoreInfoExpert } from "@/types/NeedsMoreInfoExperts"
+
 import { JobTitleBenchmark } from "@/types/benchMarkTitles"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { updateProject } from "@/services/projectService"
 import { BenchmarkComment } from "@/types/benchmarkComment"
-import { set } from "date-fns"
 import AddBenchmarkComment from "./add-benchmark-comment"
 import HistoryComponent from "../historyComponent"
 
@@ -40,6 +36,34 @@ export default function Screen4_BenchmarkReview({
     onStartSourcing,
     onRebenchmark,
 }: Screen4_BenchmarkReviewProps) {
+
+    useEffect(() => {
+        console.log("Stream State changed:", streamState);
+        console.log("rebuilding component state");
+        setNewStreamState(streamState)
+        setBenchMarkState(streamState.benchmark_state)
+        const benchmarkTitles = streamState.benchmark_state?.benchmark_titles?.results || [];
+        const highlyRelevant = benchmarkTitles.filter(j => j.ai_category === 'highly_relevant');
+        const needsMoreInfo = benchmarkTitles.filter(j => j.ai_category === 'needs_more_info');
+        const definitelyNotRelevant = benchmarkTitles.filter(j => j.ai_category === 'definitely_not_relevant');
+        setAllSectionsFilled({
+            'highly-relevant': highlyRelevantIndex ? highlyRelevant.slice(0, highlyRelevantIndex) : highlyRelevant,
+            'needs-more-info': needMoreInfoIndex ? needsMoreInfo.slice(0, needMoreInfoIndex) : needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevantIndex ? definitelyNotRelevant.slice(0, definitelyNotRelevantIndex) : definitelyNotRelevant,
+        });
+        setSections({
+            'highly-relevant': highlyRelevantIndex ? highlyRelevant.slice(0, highlyRelevantIndex) : highlyRelevant,
+            'needs-more-info': needMoreInfoIndex ? needsMoreInfo.slice(0, needMoreInfoIndex) : needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevantIndex ? definitelyNotRelevant.slice(0, definitelyNotRelevantIndex) : definitelyNotRelevant,
+        });
+        setInitialSections({
+            'highly-relevant': highlyRelevantIndex ? highlyRelevant.slice(0, highlyRelevantIndex) : highlyRelevant,
+            'needs-more-info': needMoreInfoIndex ? needsMoreInfo.slice(0, needMoreInfoIndex) : needsMoreInfo,
+            'definitely-not-relevant': definitelyNotRelevantIndex ? definitelyNotRelevant.slice(0, definitelyNotRelevantIndex) : definitelyNotRelevant,
+        });
+
+
+    }, [streamState])
     
     
 
@@ -47,23 +71,28 @@ export default function Screen4_BenchmarkReview({
     const [benchmarkComment, setBenchmarkComment] = useState<BenchmarkComment | undefined>(undefined);
     const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
-    const benchMarkState = newStreamState.benchmark_state;
-    const allSectionsFilled: JobTitleSections = {
+    const [benchMarkState, setBenchMarkState] = useState<StreamState['benchmark_state']>(streamState.benchmark_state)
+    console.log("New benchmark state titles length:", benchMarkState?.benchmark_titles?.results?.length ?? 0);
+
+    const [allSectionsFilled, setAllSectionsFilled] = useState<JobTitleSections>({
         'highly-relevant': benchMarkState?.benchmark_titles?.results.filter(j => j.ai_category === 'highly_relevant') ?? [],
         'needs-more-info': benchMarkState?.benchmark_titles?.results.filter(j => j.ai_category === 'needs_more_info') ?? [],
         'definitely-not-relevant': benchMarkState?.benchmark_titles?.results.filter(j => j.ai_category === 'definitely_not_relevant') ?? [],
-    }
+    });
+
     //first 4 of each section
 
-    const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(allSectionsFilled['highly-relevant'].length > 4 ? 4 : null)
-    const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(allSectionsFilled['needs-more-info'].length > 4 ? 4 : null)
-    const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(allSectionsFilled['definitely-not-relevant'].length > 4 ? 4 : null)
+    const [highlyRelevantIndex, setHighlyRelevantIndex] = useState<number | null>(4)
+    const [needMoreInfoIndex, setNeedMoreInfoIndex] = useState<number | null>(4)
+    const [definitelyNotRelevantIndex, setDefinitelyNotRelevantIndex] = useState<number | null>(4)
 
-    const initialSections: JobTitleSections = {
+
+
+    const [initialSections, setInitialSections] = useState<JobTitleSections>({  
         'highly-relevant': highlyRelevantIndex ? allSectionsFilled['highly-relevant'].slice(0, highlyRelevantIndex) : allSectionsFilled['highly-relevant'],
         'needs-more-info': needMoreInfoIndex ? allSectionsFilled['needs-more-info'].slice(0, needMoreInfoIndex) : allSectionsFilled['needs-more-info'],
         'definitely-not-relevant': definitelyNotRelevantIndex ? allSectionsFilled['definitely-not-relevant'].slice(0, definitelyNotRelevantIndex) : allSectionsFilled['definitely-not-relevant'],
-    };
+    }); 
 
     const [sections, setSections] = useState<JobTitleSections>(initialSections);
     const sectionIds = useMemo(() => Object.keys(sections), [sections]) as SectionId[];

@@ -1,4 +1,4 @@
-import { getChainItems, isAIProcessing, StreamState } from '@/types/streamState';
+import { canSelectPage, ChainItem, getChainItems, isAIProcessing, StreamState } from '@/types/streamState';
 import { CheckCircleOutlined, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import type { ThoughtChainItem } from '@ant-design/x';
 import { Check } from 'lucide-react';
@@ -7,13 +7,21 @@ import { THOUGHT_CHAIN_ITEM_STATUS } from '@ant-design/x/es/thought-chain/Item';
 
 import React, { useEffect, useState } from 'react';
 import { th } from 'date-fns/locale';
+import { PageTitle } from '@/app/[project_id]/store/mainPageStore';
 
 interface AppThoughtChainProps {
     
     streamState: StreamState;
+    onClick?: (item: AppChainItem, index: number) => void;
+    
 }
 
-
+export type AppChainItem = {
+    key: PageTitle;
+    title: string;
+    status?: string;
+    icon: React.ReactNode;
+}
 const statusColors: { [key: string]: string } = {
     'success': 'bg-primary border-green-500 text-white',
     'passed': 'bg-green-500 border-green-500 text-white',
@@ -27,11 +35,12 @@ const statusColors: { [key: string]: string } = {
 
 
 interface ChainStepProps {
-    item: ThoughtChainItem;
+    item: AppChainItem;
     index: number;
     isLast: boolean;
-    nextItemStatus?: ThoughtChainItem['status'];
+    nextItemStatus?: AppChainItem['status'];
     isAiProcessing?: boolean;
+    
 }
 
 const ChainStep: React.FC<ChainStepProps> = ({ item, index, isLast, nextItemStatus, isAiProcessing }) => {
@@ -88,7 +97,7 @@ const statusToThoughtChainStatus = (status: string): THOUGHT_CHAIN_ITEM_STATUS |
             return THOUGHT_CHAIN_ITEM_STATUS.PENDING
     }
 }
-const getThoughtChainsFromStreamState = (streamState: StreamState): ThoughtChainItem[] => {
+const getThoughtChainsFromStreamState = (streamState: StreamState): AppChainItem[] => {
     const chainItems = getChainItems(streamState);
     return chainItems.map((item) => ({
         key: item.key,
@@ -99,8 +108,8 @@ const getThoughtChainsFromStreamState = (streamState: StreamState): ThoughtChain
 }
 
 
-const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState }) => {
-    const [thoughtChainItems, setThoughtChainItems] = useState<ThoughtChainItem[]>(getThoughtChainsFromStreamState(streamState));
+const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState, onClick }) => {
+    const [thoughtChainItems, setThoughtChainItems] = useState<AppChainItem[]>(getThoughtChainsFromStreamState(streamState));
     useEffect(() => {
         console.log("StreamState updated in AppThoughtChain:");
         thoughtChainItems.forEach(item => {
@@ -114,11 +123,21 @@ const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState }) => {
     if (!thoughtChainItems || thoughtChainItems.length === 0) {
         return <p className="text-gray-500">No chain items to display.</p>;
     }
+    const isDisabled = (item: AppChainItem) => {
+        return canSelectPage(streamState, item.key);
+    }
+    
 
     return (
         <div className='w-full py-4 overflow-x-auto'>
             <div className="flex items-start min-w-full">
+                
                 {thoughtChainItems.map((item, index) => (
+                    <div onClick={() => {
+                        if(onClick){
+                            onClick(item, index)
+                        }
+                    }} key={index} className={`flex-grow ${isDisabled(item) ? "cursor-pointer" : ""}`}>
                     <ChainStep
                         key={index}
                         item={item}
@@ -127,6 +146,7 @@ const AppThoughtChain: React.FC<AppThoughtChainProps> = ({ streamState }) => {
                         nextItemStatus={thoughtChainItems[index + 1]?.status}
                         isAiProcessing={isAIProcessing(streamState,item.key ?? "")}
                     />
+                    </div>
                 ))}
             </div>
         </div>

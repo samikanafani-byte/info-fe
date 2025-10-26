@@ -1,3 +1,4 @@
+import { PageTitle } from "@/app/[project_id]/store/mainPageStore";
 import { BenchMarkState } from "./benchMarkState";
 import { CompanyState } from "./companyState";
 import { ExpertState } from "./expertState";
@@ -18,6 +19,8 @@ export interface StreamState {
     needs_more_info_experts?: NeedsMoreInfoExpert[];
     experts_state: ExpertState;
     benchmark_state?: BenchMarkState;
+    running_stages: string[];
+    completed_stages: string[];
 }
 
 function capitalizeFirstLetter(str: string): string {
@@ -33,42 +36,13 @@ function capitalizeFirstLetter(str: string): string {
     return capitalizedWords.join(' ');
 }
 export function isAIProcessing(streamState: StreamState, stateToCheck: string): boolean {
-    const allExpertsLength = (streamState.experts_state?.highly_relevant_job_function_experts?.length ?? 0) + (streamState.experts_state?.needs_more_info_experts?.length ?? 0)
-    if(stateToCheck !="benchmarking"){
-        if (streamState.status != stateToCheck) {
-            return false
-        }
-    }else{
-        if (streamState.status != "benchmarking_titles" && streamState.status != "benchmarking_profiles") {
-            return false
-        }
-    }
+    const running = streamState.running_stages || []
+    const completed = streamState.completed_stages || []
 
-    switch (stateToCheck) {
-        case "initial":
-            return false
-        case "decode":
-            // check if the search stream is not null
-            return streamState.search_stream ==null 
-        case "companies":
-            return (!streamState.matching_companies_in_db || streamState.matching_companies_in_db.length === 0)
-        case "keywords":
-            return (!streamState.keywords || !streamState.keywords.list_of_keywords || streamState.keywords.list_of_keywords.length === 0)
-        case "benchmarking":
-            if(streamState.status == "benchmarking_titles"){
-                return (!streamState.benchmark_state || !streamState.benchmark_state.benchmark_titles || !streamState.benchmark_state.benchmark_titles.results || streamState.benchmark_state.benchmark_titles.results.length === 0)
-            }else{
-                return (!streamState.benchmark_state || !streamState.benchmark_state.benchmark_titles || !streamState.benchmark_state.benchmark_titles.results || streamState.benchmark_state.benchmark_titles.results.length === 0)
-            }
-        case "sourcing":
-            return (!streamState.experts_state || allExpertsLength === 0)
-        case "review":
-            return (!streamState.experts_state || allExpertsLength === 0)
-        case "completed":
-            return (!streamState.experts_state || allExpertsLength === 0)
-        default:
-            return false
+    if (running.includes(stateToCheck) && !completed.includes(stateToCheck)) {
+        return true
     }
+    return false
     
 }
 export function getMatchingCompaniesFiltered(streamState: StreamState): string[] {
@@ -91,91 +65,22 @@ export function getMatchingCompaniesFiltered(streamState: StreamState): string[]
     return Array.from(uniqueCompaniesMap.values());
 }
 
-function getStatusForThoughtChainItem(status: string, stage: string): string {
-    let passedStatuses: string[] = [] //determines which statuses that consider this stage as passed
-    let currentStatuses: string[] = [] //determines which statuses that consider this stage as current
-    switch (stage) {
-        case 'decode':
-            passedStatuses = [
-                'companies',
-                'keywords',
-                'benchmarking_titles',
-                'benchmarking_profiles',
-                'sourcing',
-                'review',
-                'completed'
-            ]
-            currentStatuses = [
-                'decode',
-                'initial'
-            ]
-            break;
-        case 'companies':
-            passedStatuses = [
-                'keywords',
-                'benchmarking_titles',
-                'benchmarking_profiles',
-                'sourcing',
-                'review',
-                'completed'
-            ]
-            currentStatuses = [
-                'companies'
-            ]
-            break;
-        case 'keywords':
-            passedStatuses = [
-                'benchmarking_titles',
-                'benchmarking_profiles',
-                'sourcing',
-                'review',
-                'completed'
-            ]
-            currentStatuses = [
-                'keywords'
-            ]
-            break;
-        
-        case 'benchmarking':
-            passedStatuses = [
-                'sourcing',
-                'review',
-                'completed'
-            ]
-            currentStatuses = [
-                'benchmarking_titles',
-                'benchmarking_profiles'
-            ]
-            break;
-        case 'review':
-            passedStatuses = [
-                'completed'
-            ]
-            currentStatuses = [
-                'validation',
-                'sourcing',
-                'review'
-            ]
-            break;
-        case 'completed':
-            passedStatuses = [
-                
-            ]
-            currentStatuses = [
-                'completed'
-            ]
-        default:
-            passedStatuses = []
-    }
-    if (passedStatuses.includes(status)) {
-        // Your code block here
+
+function getStatusForThoughtChainItem(stream_state: StreamState, stage: string): string {
+    const running = stream_state.running_stages || []
+    const completed = stream_state.completed_stages || []
+
+    if (completed.includes(stage)) {
         return "passed"
     }
-    if(currentStatuses.includes(status)){
+    if (running.includes(stage)) {
         return "current"
     }
-
     return "pending"
+}
+export function canSelectPage(streamState: StreamState, page: string): boolean {
+    const runningStatus = getStatusForThoughtChainItem(streamState, page)
+    return runningStatus === "passed" || runningStatus === "current"
 }
 export const getThoughtTitle = (stage: string) => {
     switch (stage) {
@@ -187,6 +92,12 @@ export const getThoughtTitle = (stage: string) => {
             return " Keywords"
         case 'benchmarking':
             return "Benchmark"
+        case "benchmarking_titles":
+            return "Benchmark Titles"
+        case "benchmarking_profiles":
+            return "Benchmark Profiles"
+        case 'sourcing':
+            return "Review"
         case 'review':
             return "Review"
         case 'completed':
@@ -246,17 +157,17 @@ export const getStreamTextTitle = (streamState: StreamState) => {
 
 
 export type ChainItem = {
-    key: string;
+    key: PageTitle;
     title: string;
     status: string;
 }
 export function getChainItems(streamState: StreamState): ChainItem[] {
-    
-    const stages = ['decode', 'companies', 'keywords', 'benchmarking', 'review'];
-    const thoughtChains = stages.map((stage) => ({
+
+    const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "benchmarking_profiles", "sourcing"];
+    const thoughtChains = pageTitles.map((stage) => ({
         key: stage,
         title: getThoughtTitle(stage),
-        status: getStatusForThoughtChainItem(streamState.status || 'initial', stage),
+        status: getStatusForThoughtChainItem(streamState || 'initial', stage),
     }));
     return thoughtChains;
 

@@ -3,20 +3,15 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import ProgressStepper from "@/components/progress-stepper"
-import Screen1BriefInput from "@/components/screens/screen-1-brief-input"
+
 import Screen1_5DecodingHub from "@/components/screens/screen-1.5-decoding-hub"
 import Screen2ReviewBrief from "@/components/screens/screen-2-review-brief"
 import Screen2_5ReviewCompanies from "@/components/screens/screen-2.5-review-companies"
 import Screen3ReviewKeywords from "@/components/screens/screen-3-review-keywords"
-import Screen4SourcingPipeline from "@/components/screens/screen-4-sourcing-pipeline"
 import Screen5ReviewShortlist from "@/components/screens/review/screen-5-review-shortlist"
 import { Loader2, ArrowLeft } from "lucide-react"
 import {
-    initialDecodedBrief,
-    initialKeywords,
     initialExperts,
-    initialBenchmarkData,
     secondBenchmarkData,
     type DecodingProcess,
 } from "@/lib/data"
@@ -24,16 +19,17 @@ import { cn } from "@/lib/utils"
 import { ResizableDialog } from "@/components/resizable-dialog"
 import { produce } from "immer"
 import { ProjectState } from "@/types/project"
-import { StreamState } from "@/types/streamState"
+import { canSelectPage, StreamState } from "@/types/streamState"
 import { continueProject, getProject, updateProject } from "@/services/projectService"
 
 import { ToastContainer, toast } from 'react-toastify';
-import Screen5_Sourcing from "@/components/screens/screen-5-sourcing"
 import Screen4_BenchmarkReview from "@/components/screens/screen-4-benchmark-review"
 import Screen4_5_BenchmarkProfiles from "@/components/screens/screen-4.5-benchmark-profiles"
 import PreventClosing from "@/components/screens/preventClosing"
 import AppThoughtChain from "@/components/ui/app-thought-chain"
 import StreamTextComponent from "@/components/ui/stream-text-component"
+import { useMainPage } from "./hooks/useMainPage"
+import { useMainPageStore } from "./store/mainPageStore"
 
 // Define the expected structure for the component's props
 interface ProjectPageProps {
@@ -42,59 +38,52 @@ interface ProjectPageProps {
     };
 }
 
-const STEPS = ["Decode", "Companies", "Keywords", "Benchmarking", "Sourcing", "Review"]
-
 export default function ContinueProjectPage({ params }: ProjectPageProps) {
     // Extract the project ID from the params
     const { project_id } = params;
-    console.log("Loaded project ID:", project_id);
+    const activeDecoding = useMainPageStore((state) => state.activeDecoding);
+    const project = useMainPageStore((state) => state.project);
+    
+    const { setIsLoading, setLoadingText,setProject, setIsDialogOpen, handleLoadProject, setActiveDecoding,setCurrentPage } = useMainPage(project_id);
 
-    const [isLoading, setIsLoading] = useState(true);
+    const isLoading = useMainPageStore((state) => state.isLoading);
     const [decodings, setDecodings] = useState<DecodingProcess[]>([])
-    const [activeDecoding, setActiveDecoding] = useState<StreamState | undefined>(undefined)
-      
-    const [loadingText, setLoadingText] = useState("")
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [isCorrectingDecodings, setIsCorrectingDecodings] = useState(false)
-    const [currentBranch, setCurrentBranch] = useState("john-doe/feature-improvements")
-    const [project, setProject] = useState<ProjectState | null>(null)
-
-    const handleFetchProject = async () => {
-        setIsLoading(true);
-        setLoadingText("Fetching project...")
-        try{
-            const newProject = await getProject(project_id);
-            setProject(newProject);
-            setIsLoading(false);
-            setLoadingText("");
-            setIsDialogOpen(true);
-        }
-        catch(error){
-            console.error("Error fetching project:", error);
-            setIsLoading(false);
-            setLoadingText("");
-        }
-    }
+    const loadingText = useMainPageStore((state) => state.loadingText);
+    const isCorrectingDecodings = useMainPageStore((state) => state.isCorrectingDecodings);
+    const isDialogOpen = useMainPageStore((state) => state.isDialogOpen);
+    const currentPage = useMainPageStore((state) => state.currentPage);   
+    
 
 
     useEffect(() => {
-        handleFetchProject();
+        handleLoadProject();
     }, [project_id]);
+
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                 e.preventDefault()
-                setIsDialogOpen((prev) => !prev)
+                setIsDialogOpen(!isDialogOpen)
             }
         }
-
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [])
 
+    useEffect(() => {
+        //rerender when project changes
+        //update the active decoding
+        if(!project || !project.stream_states) return
+        const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
+        if (streamState) {
+            setActiveDecoding(streamState)
+        }
+    }, [project])
+
     const updateStream = (project: ProjectState) => {
         setProject(project)
+        if(project.stream_states===undefined) return
         const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
         if (streamState) {
             setActiveDecoding(streamState)
@@ -114,20 +103,20 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
     }
 
 
-
-
-
-
     const handleApproveBrief = async () => {
         setIsLoading(true)
         setLoadingText("Preparing Company Review...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setProject(projectState)
-            updateActiveDecoding((draft) => {
-                draft.step = 2
-            })
-            setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            //move to next page
+            setCurrentPage("companies")
+
+
+            // updateActiveDecoding((draft) => {
+            //     draft.step = 2
+            // })
+            // if(projectState.stream_states===undefined) return
+            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -137,15 +126,9 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
 
     const handleApproveCompanies = async () => {
         setIsLoading(true)
-
-        setLoadingText("Generating Keywords...")
+        setLoadingText("Moviing to keywords...")
         try {
-            const projectState = await continueProject(project?.session_id || "")
-            setProject(projectState)
-            updateActiveDecoding((draft) => {
-                draft.step = 5
-            })
-            setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            setCurrentPage("keywords")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -158,11 +141,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Preparing Benchmark Profiles...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setProject(projectState)
-            updateActiveDecoding((draft) => {
-                draft.step = 4
-            })
-            setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            setCurrentPage("benchmarking_profiles")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -175,39 +154,14 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Starting the sourcing process...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setProject(projectState)
-            updateActiveDecoding((draft) => {
-                draft.step = 4
-            })
-            setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            setCurrentPage("sourcing")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
             setIsLoading(false)
         }
     }
-    const getStepBasedOnStatus = (status: string) => {
-        switch (status) {
-            case "decode":
-                return 1
-            case "companies":
-                return 2
-            case "keywords":
-                return 3
-            case "benchmarking_titles":
-                return 4
-            case "benchmarking_profiles":
-                return 5
-            case "validation":
-                return 6
-            case "sourcing":
-                return 6
-            case "completed":
-                return 7
-            default:
-                return 1
-        }
-    }
+
 
     const handleApproveKeywords = async () => {
         setIsLoading(true)
@@ -215,11 +169,8 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         try {
 
             const projectState = await continueProject(project?.session_id || "")
-            setProject(projectState)
-            updateActiveDecoding((draft) => {
-                draft.step = 4
-            })
-            setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            setCurrentPage("benchmarking_titles")
+            
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -235,11 +186,13 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         try {
             //send the request to continue the project
             const projectState = await continueProject(project?.session_id || "")
-            setProject(projectState)
-            updateActiveDecoding((draft) => {
-                draft.step = 6
-            })
-            setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            
+            // setProject(projectState)
+            // updateActiveDecoding((draft) => {
+            //     draft.step = 6
+            // })
+            // if (projectState.stream_states === undefined) return
+            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error updating project:", error)
 
@@ -249,17 +202,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
 
     }
 
-    const handleRebenchmark = () => {
-        setIsLoading(true)
-        setLoadingText("Calibrating and preparing new benchmark...")
-        setTimeout(() => {
-            updateActiveDecoding((draft) => {
-                draft.benchmarkData = secondBenchmarkData
-                draft.benchmarkRound += 1
-            })
-            setIsLoading(false)
-        }, 2500)
-    }
 
     const handleViewResults = () => {
         setIsLoading(true)
@@ -282,10 +224,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             const newId = `decoding-${decodings.length + 1}`
             const newName = `Decoding Variant #${decodings.length - 1}`
             const newReasoning = "A new decoding variant to test an alternative sourcing strategy."
-            // const newDecoding = createNewDecoding(newId, newName, newReasoning)
-            // setDecodings((prev) => [...prev, newDecoding])
-            // // setActiveDecodingId(newId)
-            // setIsLoading(false)
         }, 1500)
     }
 
@@ -298,6 +236,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         }
         try {
             const newResp = await updateProject(project?.session_id || "", decoding.stream_id, decoding)
+            if (newResp.stream_states === undefined) return
             const stream_to_set = newResp.stream_states.find(s => s.stream_id === decoding.stream_id)
             setActiveDecoding(stream_to_set)
         }
@@ -308,7 +247,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
     const handleApplyFeedback = (feedbackText: string) => {
         setIsLoading(false)
         setLoadingText("Applying feedback and regenerating decodings...")
-        setIsCorrectingDecodings(false)
     }
 
 
@@ -322,9 +260,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                 </div>
             )
         }
-
-
-
 
         if (!activeDecoding) {
             if (project) {
@@ -340,8 +275,9 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             }
             return <div></div>
         }
-        console.log("Rendering screen for status:", activeDecoding.status)
-        switch (activeDecoding.status) {
+        
+
+        switch (currentPage){
             case "decode":
                 return (
                     <Screen2ReviewBrief
@@ -382,34 +318,26 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                     onNext={() => { }}
                     onRebenchmark={() => { }}
                 />
-            case "benchmarking_profiles":
+            case "benchmarking_profiles":   
                 return <Screen4_5_BenchmarkProfiles
                     sessionId={project?.session_id || ""}
                     streamState={activeDecoding}
                     onStartSourcing={() => {
-                        handleApproveExperts()
+                        handleApproveExperts()      
                     }}
                     onNext={() => { }}
                     onRebenchmark={() => { }}
                 />
+            
             case "sourcing":
-                return (
-                    <Screen5_Sourcing
-                        sessionId={project?.session_id || ""}
-                        streamState={activeDecoding}
-                        onStartSourcing={handleStartFullSourcing}
-                        onRebenchmark={handleRebenchmark}
-                    />
-                )
-            case "completed":
                 return (
                     <Screen5ReviewShortlist
                         streamState={activeDecoding}
                         sessionId={project?.session_id || ""}
                         onStartNewSearch={() => {
-                            setActiveDecoding(undefined)
-                        }}
-                    />
+                                setActiveDecoding(undefined)
+                            }}
+                />
                 )
             default:
                 return <div></div>
@@ -494,8 +422,16 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                     {activeDecoding && (
                         <div className="flex flex-col ">
                         <div className="flex items-center justify-center">
-                        <AppThoughtChain streamState={activeDecoding} />
-                            
+                        <AppThoughtChain 
+                        streamState={activeDecoding} onClick={(item, index) => {
+                            console.log(`Clicked on item ${index}:`, item.key);
+                            if(!item.key) return;
+                            if(canSelectPage(activeDecoding, item.key)){
+                                setCurrentPage(item.key);
+                            }
+                        }} 
+                        
+                        />
                         </div>
                             <StreamTextComponent streamState={activeDecoding} />
                         </div>
