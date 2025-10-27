@@ -106,12 +106,14 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Preparing Company Review...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setCurrentPage("companies")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
             setIsLoading(false)
         }
+    }
+    const handleContinueBrief = ()=>{
+        setCurrentPage("companies")
     }
 
     const handleApproveCompanies = async () => {
@@ -177,12 +179,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             //send the request to continue the project
             const projectState = await continueProject(project?.session_id || "")
             
-            // setProject(projectState)
-            // updateActiveDecoding((draft) => {
-            //     draft.step = 6
-            // })
-            // if (projectState.stream_states === undefined) return
-            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            
         } catch (error) {
             console.error("Error updating project:", error)
 
@@ -275,6 +272,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         streamState={activeDecoding}
                         onApprove={handleApproveBrief}
                         onReanalyze={() => { }}
+                        onContinue={handleContinueBrief}
                         onDataChange={(data) => updateStream(data)}
                     />
                 )

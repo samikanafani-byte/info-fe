@@ -166,8 +166,8 @@ export default function Screen4_BenchmarkReview({
 
     const handleStartResourcing = async () => {
         //update the status of the stream
-        newStreamState.benchmark_state!.status = "profiles"
-        newStreamState.status = "benchmarking_profiles"
+        newStreamState.benchmark_state!.status = "completed"
+        newStreamState.status = "validation"
         try {
             setSubmitLoading(true)
             const updatedProject = await updateProject(sessionId, newStreamState.stream_id, newStreamState)

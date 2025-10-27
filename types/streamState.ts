@@ -163,7 +163,8 @@ export type ChainItem = {
 }
 export function getChainItems(streamState: StreamState): ChainItem[] {
 
-    const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "benchmarking_profiles", "sourcing"];
+    // const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "benchmarking_profiles", "sourcing"];
+    const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "sourcing"];
     const thoughtChains = pageTitles.map((stage) => ({
         key: stage,
         title: getThoughtTitle(stage),

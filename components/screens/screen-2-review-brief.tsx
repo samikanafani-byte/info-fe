@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, use } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import { set } from "date-fns"
 import { updateProject } from "@/services/projectService"
 import { ProjectState } from "@/types/project"
 import Tooltip from '@mui/material/Tooltip';
+import { useEditor } from "@tiptap/react"
 
 interface Screen2ReviewBriefProps {
   session_id: string
@@ -20,6 +21,7 @@ interface Screen2ReviewBriefProps {
   onApprove: () => void
   onReanalyze: () => void
   onDataChange: (data: ProjectState) => void
+  onContinue: () => void
 }
 type SECTION = "brief" | "scoring" | "context_and_knowledge_gap" | "end_client_sub_sector" | "industries_of_interest" | "sub_sectors_of_interest" | "value_chain_analysis" | "desired_viewpoint_node" | "geography" | "project_logistics"
 export default function Screen2ReviewBrief({
@@ -28,12 +30,12 @@ export default function Screen2ReviewBrief({
   onApprove,
   onReanalyze,
   onDataChange,
+  onContinue,
 }: Screen2ReviewBriefProps) {
   const [editingSection, setEditingSection] = useState<SECTION | null>(null)
   const [editText, setEditText] = useState("")
-  const [isResearching, setIsResearching] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
-  const [projectState, setProjectState] = useState<ProjectState | null>(null)
+  
 
   const handleEdit = (section: SECTION, content: string) => {
     if (section === "brief"){
@@ -93,6 +95,15 @@ export default function Screen2ReviewBrief({
     
   }
 
+  const checkIfProjectNeedsToBeContinued = () => {
+    if(streamState.status=='decode' &&  (!streamState.running_stages || streamState.running_stages.length==0) ){
+      onApprove()
+    }
+  }
+
+  useEffect(() => {
+    checkIfProjectNeedsToBeContinued()
+  }, [])
 
   const renderEditableItem = (id: SECTION, title: string, content: string) => {
     const isEditing = editingSection === id
@@ -162,8 +173,8 @@ export default function Screen2ReviewBrief({
         </Accordion>
       </div>
       <div className="mt-4 space-y-2">
-        <Button className="w-full" onClick={handleOnApprove}>
-          Approve & Review Companies
+        <Button className="w-full" onClick={onContinue}>
+          Check Companies
         </Button>
         <Button variant="outline" className="w-full bg-transparent" onClick={onReanalyze}>
           Re-Analyze Brief
