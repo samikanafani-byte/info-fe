@@ -142,31 +142,10 @@ export default function ExpertSearchPage() {
   const handleStartAnalysis = (response: AcceptResponse) => {
     setIsLoading(true)
     setLoadingText("Initiating parallel decodings...")
+    
     setTimeout(() => {
-      const decodingsData = [
-        {
-          id: "decoding-1",
-          name: "Priority 1: Aircraft Engine Fastener Manufacturers (Sellers)",
-          reasoning:
-            "Brief explicitly defines this as 'In priority' and targets the sellers/manufacturers of aircraft engine fasteners. This represents a distinct viewpoint node (Sellers) and has different role requirements (R&D, Engineering, Commercial) compared to the second request.",
-        },
-        {
-          id: "decoding-2",
-          name: "Priority 2: Aircraft Engine OEMs (Buyers)",
-          reasoning:
-            "Brief explicitly defines this as 'Second priority' and targets the buyers/users of fasteners within engine OEM companies. This represents a distinct viewpoint node (Buyers) and a different position in the value chain.",
-        },
-      ]
-
-      const initialDecodings = decodingsData.map((d) => createNewDecoding(d.id, d.name, d.reasoning))
-      setDecodings(initialDecodings)
-      setIsLoading(false)
-
-      // move to the new page with the project id in the url
       router.push(`/${response.session_id}`);
-
-
-    }, 1500)
+    }, 500)
   }
 
   const handleStartNewDecoding = () => {

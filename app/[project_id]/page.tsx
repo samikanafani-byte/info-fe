@@ -72,8 +72,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
     }, [])
 
     useEffect(() => {
-        //rerender when project changes
-        //update the active decoding
         if(!project || !project.stream_states) return
         const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
         if (streamState) {
@@ -108,20 +106,14 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Preparing Company Review...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            //move to next page
-            setCurrentPage("companies")
-
-
-            // updateActiveDecoding((draft) => {
-            //     draft.step = 2
-            // })
-            // if(projectState.stream_states===undefined) return
-            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
             setIsLoading(false)
         }
+    }
+    const handleContinueBrief = ()=>{
+        setCurrentPage("companies")
     }
 
     const handleApproveCompanies = async () => {
@@ -141,7 +133,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Preparing Benchmark Profiles...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setCurrentPage("benchmarking_profiles")
+            setCurrentPage("sourcing")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
@@ -187,12 +179,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
             //send the request to continue the project
             const projectState = await continueProject(project?.session_id || "")
             
-            // setProject(projectState)
-            // updateActiveDecoding((draft) => {
-            //     draft.step = 6
-            // })
-            // if (projectState.stream_states === undefined) return
-            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
+            
         } catch (error) {
             console.error("Error updating project:", error)
 
@@ -285,6 +272,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         streamState={activeDecoding}
                         onApprove={handleApproveBrief}
                         onReanalyze={() => { }}
+                        onContinue={handleContinueBrief}
                         onDataChange={(data) => updateStream(data)}
                     />
                 )
@@ -294,7 +282,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         sessionId={project?.session_id || ""}
                         streamState={activeDecoding}
                         onApprove={handleApproveCompanies}
-                        onBack={() => updateActiveDecoding((d) => (d.step = 2))}
+                        onBack={() => setCurrentPage("decode")}
                         onDataChange={(data) => updateStream(data)}
                     />
                 )
@@ -304,7 +292,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         sessionId={project?.session_id || ""}
                         streamState={activeDecoding}
                         onApprove={handleApproveKeywords}
-                        onBack={() => updateActiveDecoding((d) => (d.step = 2))}
+                        onBack={() => setCurrentPage("companies")}
                         onDataChange={(data) => updateStream(data)}
                     />
                 )

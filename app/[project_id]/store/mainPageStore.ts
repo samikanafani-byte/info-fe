@@ -39,7 +39,7 @@ const getInitialState = (): MainPageState => ({
     activeDecoding: undefined,
     loadingText: undefined,
     isLoading: false,
-    isDialogOpen: false,
+    isDialogOpen: true,
     isCorrectingDecodings: false,   
     isConnected: false,
     serverStatus: 'offline',

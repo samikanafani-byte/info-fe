@@ -123,7 +123,7 @@ streamState,
       <div className="mt-4 pt-4 border-t border-custom-border">
         <div className="space-y-2">
           <Button className="w-full" onClick={handleApprove}>
-            Approve Companies & Generate Keywords
+            Check Keywords
           </Button>
           <Button variant="outline" className="w-full bg-transparent" onClick={onBack}>
             Back to Brief Decoding
