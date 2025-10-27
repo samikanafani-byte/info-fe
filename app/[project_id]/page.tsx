@@ -294,7 +294,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         sessionId={project?.session_id || ""}
                         streamState={activeDecoding}
                         onApprove={handleApproveCompanies}
-                        onBack={() => updateActiveDecoding((d) => (d.step = 2))}
+                        onBack={() => setCurrentPage("decode")}
                         onDataChange={(data) => updateStream(data)}
                     />
                 )
@@ -304,7 +304,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
                         sessionId={project?.session_id || ""}
                         streamState={activeDecoding}
                         onApprove={handleApproveKeywords}
-                        onBack={() => updateActiveDecoding((d) => (d.step = 2))}
+                        onBack={() => setCurrentPage("companies")}
                         onDataChange={(data) => updateStream(data)}
                     />
                 )

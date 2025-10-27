@@ -299,6 +299,14 @@ export default function Screen4_BenchmarkReview({
         }
     }
 
+
+    const canStartResourcing = (): boolean =>{
+        if(newStreamState.running_stages?.includes("benchmark_titles")){
+            return false
+        }
+        return true
+    }
+
     return (
         <div>
             <div className="flex flex-col h-full">
@@ -368,7 +376,7 @@ export default function Screen4_BenchmarkReview({
                                 key={totalSectionsCount}
                             />
                             <div className="flex items-center justify-between mt-4">
-                                <Button variant="link" onClick={onStartSourcing}>
+                                <Button disabled={!canStartResourcing()} variant="link" onClick={onStartSourcing}>
                                     Skip & Start Sourcing
                                 </Button>
                                 <div className="flex items-center space-x-2">
@@ -394,13 +402,12 @@ export default function Screen4_BenchmarkReview({
                                                 position: 'top-right',
                                                 autoClose: 1000,
                                             });
-
                                         }
 
                                     }}>
                                         Benchmark More
                                     </Button>
-                                    <Button onClick={handleStartResourcing}>{getButtonText()}</Button>
+                                    <Button disabled={!canStartResourcing()}onClick={handleStartResourcing}>{getButtonText()}</Button>
                                 </div>
                             </div>
                         </div>

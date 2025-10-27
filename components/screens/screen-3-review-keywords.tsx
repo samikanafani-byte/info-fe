@@ -156,6 +156,17 @@ export default function Screen3ReviewKeywords({
     onApprove()
   }
 
+  const isApproveDisabled = ()=>{
+    if (!newStreamState.keywords || newStreamState.keywords.list_of_keywords.length == 0){
+      return true
+    }
+    if (newStreamState.running_stages?.includes("keywords")){
+      return true
+    }
+    return false
+  }
+  
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow space-y-4">
@@ -172,8 +183,8 @@ export default function Screen3ReviewKeywords({
         </div>
       </div>
       <div className="mt-4 space-y-2">
-        <Button className="w-full" onClick={handleApprove}>
-          Approve & Begin Sourcing
+        <Button disabled={isApproveDisabled()} className="w-full" onClick={handleApprove}>
+          Approve & Begin Benchmarking
         </Button>
         <Button variant="outline" className="w-full bg-transparent" onClick={onBack}>
           Back to Companies
