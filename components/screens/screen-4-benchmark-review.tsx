@@ -301,7 +301,7 @@ export default function Screen4_BenchmarkReview({
 
 
     const canStartResourcing = (): boolean =>{
-        if(newStreamState.running_stages?.includes("benchmark_titles")){
+        if (newStreamState.running_stages?.includes("benchmarking_titles")){
             return false
         }
         return true

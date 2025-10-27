@@ -72,8 +72,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
     }, [])
 
     useEffect(() => {
-        //rerender when project changes
-        //update the active decoding
         if(!project || !project.stream_states) return
         const streamState = project.stream_states.find((s) => s.stream_id === activeDecoding?.stream_id)
         if (streamState) {
@@ -108,15 +106,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Preparing Company Review...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            //move to next page
             setCurrentPage("companies")
-
-
-            // updateActiveDecoding((draft) => {
-            //     draft.step = 2
-            // })
-            // if(projectState.stream_states===undefined) return
-            // setActiveDecoding(projectState.stream_states.find(s => s.stream_id === activeDecoding?.stream_id))
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
