@@ -133,7 +133,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setLoadingText("Preparing Benchmark Profiles...")
         try {
             const projectState = await continueProject(project?.session_id || "")
-            setCurrentPage("benchmarking_profiles")
+            setCurrentPage("sourcing")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {
