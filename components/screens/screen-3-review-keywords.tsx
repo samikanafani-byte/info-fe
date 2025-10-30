@@ -150,7 +150,7 @@ export default function Screen3ReviewKeywords({
 
   const handleApprove= async () => {
     // handle the approval
-    newStreamState.status = "benchmarking_titles"
+    
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     onDataChange(newResp)
     onApprove()
@@ -184,7 +184,7 @@ export default function Screen3ReviewKeywords({
       </div>
       <div className="mt-4 space-y-2">
         <Button disabled={isApproveDisabled()} className="w-full" onClick={handleApprove}>
-          Approve & Begin Benchmarking
+          Continue to Benchmarking
         </Button>
         <Button variant="outline" className="w-full bg-transparent" onClick={onBack}>
           Back to Companies

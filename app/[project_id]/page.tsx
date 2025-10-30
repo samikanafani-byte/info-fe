@@ -159,8 +159,6 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setIsLoading(true)
         setLoadingText("AI is preparing a benchmark sample...")
         try {
-
-            const projectState = await continueProject(project?.session_id || "")
             setCurrentPage("benchmarking_titles")
             
         } catch (error) {
