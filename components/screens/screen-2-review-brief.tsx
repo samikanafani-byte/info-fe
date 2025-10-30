@@ -102,7 +102,7 @@ export default function Screen2ReviewBrief({
   }
 
   useEffect(() => {
-    checkIfProjectNeedsToBeContinued()
+    // checkIfProjectNeedsToBeContinued()
   }, [])
 
   const renderEditableItem = (id: SECTION, title: string, content: string) => {

@@ -216,14 +216,18 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
     const handleSelectDecoding = async (decoding: StreamState) => {
         //patch the stream_state to make the status decode
         
-        if(decoding.status==="initial"){
-            decoding.status = "decode"
-        }
+        // if(decoding.status==="initial"){
+        //     decoding.status = "decode"
+        // }
         try {
-            const newResp = await updateProject(project?.session_id || "", decoding.stream_id, decoding)
-            if (newResp.stream_states === undefined) return
-            const stream_to_set = newResp.stream_states.find(s => s.stream_id === decoding.stream_id)
-            setActiveDecoding(stream_to_set)
+            // const newResp = await updateProject(project?.session_id || "", decoding.stream_id, decoding)
+            // if (newResp.stream_states === undefined) return
+            if (!project) return
+            const stream_to_set = project.stream_states?.find(s => s.stream_id === decoding.stream_id)
+            if (stream_to_set){
+                setActiveDecoding(stream_to_set)
+            }
+            
         }
         catch (error) {
             console.error("Error updating project:", error)
