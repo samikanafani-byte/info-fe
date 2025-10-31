@@ -143,6 +143,7 @@ export default function Screen4_BenchmarkReview({
 
         // send the updated stream state to the server
         try {
+            
             const response = await updateProject(sessionId, newStreamState.stream_id, updatedStreamState);
         }
         catch (error) {
