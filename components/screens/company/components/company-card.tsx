@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { X, Info } from "lucide-react"
 import type { Company } from "@/lib/data"
-import { ReasoningTooltip } from "./reasoning-tooltip"
+import { ReasoningTooltip } from "../../../reasoning-tooltip"
 import { CompanyState } from "@/types/companyState"
 
 interface CompanyCardProps {
   company: string
   onRemove: () => void
+  canRemove: boolean
 }
 
-export function CompanyCard({ company, onRemove }: CompanyCardProps) {
+export function CompanyCard({ company, onRemove, canRemove }: CompanyCardProps) {
   const getBadgeVariant = (source: Company["source"]) => {
     switch (source) {
       case "AI Researched":
@@ -50,6 +51,7 @@ export function CompanyCard({ company, onRemove }: CompanyCardProps) {
           size="icon"
           className="h-7 w-7 text-text-secondary hover:text-red-600"
           onClick={onRemove}
+          disabled={!canRemove}
         >
           <X className="h-4 w-4" />
         </Button>

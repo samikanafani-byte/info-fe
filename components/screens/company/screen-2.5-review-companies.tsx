@@ -1,17 +1,15 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { useEffect} from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { CompanyCard } from "@/components/company-card"
+import { CompanyCard } from "@/components/screens/company/components/company-card"
 import { Plus } from "lucide-react"
-import type { Company } from "@/lib/data"
-import { getMatchingCompaniesFiltered, StreamState } from "@/types/streamState"
-import { CompanyState, createEmptyCompanyState } from "@/types/companyState"
-
+import { StreamState } from "@/types/streamState"
 import { ProjectState } from "@/types/project"
-import { updateProject } from "@/services/projectService"
-import { set } from "date-fns"
+import { useCompanyReview } from "./hooks/useCompanyReview"
+import { useCompanyReviewStore } from "./store/companyReviewStore"
+import { StatementSync } from "node:sqlite"
 
 
 
@@ -30,57 +28,29 @@ streamState,
   onBack,
   onDataChange,
 }: Screen2_5ReviewCompaniesProps) {
-  const [newCompany, setNewCompany] = useState("")
-  const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
 
+    const { loadCompaniesData, removeCompany, addCompany, setNewCompany } = useCompanyReview(streamState, sessionId);
+    const newCompany = useCompanyReviewStore((state) => state.newCompany);
+    const displayCompanies = useCompanyReviewStore((state) => state.displayedCompanies);
+    
+    
   useEffect(() => {
-    setNewStreamState(streamState)
+    loadCompaniesData(streamState);
   }, [streamState])
 
   const handleRemoveCompany = async (company: string) => {
-    const updatedCompanies = {
-      ...newStreamState,
-      matching_companies_in_db: newStreamState.matching_companies_in_db?.filter((c) => c !== company) || [],
-    }
-    try{
-      const newResp = await updateProject(sessionId, updatedCompanies.stream_id, updatedCompanies)
-      onDataChange(newResp)
-      const stream_to_set = newResp?.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
-      if (stream_to_set){
-        setNewStreamState(stream_to_set)
-      } 
-    }catch(error){
-      console.error("Error updating project:", error)
-    }
+    
+    await removeCompany(company);
   }
   const handleApprove = async () => {
-    
-    // const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
-    // onDataChange(newResp)
     onApprove()
   }
 
   const handleAddCompany = async () => {
-    if (newCompany.trim()) {
-      try{
-        //append the new company state to the existing array
-        const updatedCompanies = {
-          ...newStreamState,
-          matching_companies_in_db: [...(newStreamState.matching_companies_in_db || []), newCompany.trim()],
-        }
-        const newResp = await updateProject(sessionId, newStreamState.stream_id, updatedCompanies)
-        onDataChange(newResp)
-        const stream_to_set = newResp?.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
-        if (stream_to_set) {
-          setNewStreamState(stream_to_set)
-        } 
-        
-      }catch(error){
-        console.error("Error updating project:", error)
-      }
-      
-      setNewCompany("")
-    }
+    addCompany(newCompany?.trim() || "");
+  }
+  const canAddRemoveCompany = (): boolean => {
+    return streamState.benchmark_state!=null;
   }
 
   
@@ -94,8 +64,9 @@ streamState,
         <div className="space-y-6">
           <section>
             <div className="space-y-2">
-              {getMatchingCompaniesFiltered(newStreamState)?.map((company) => (
+              {displayCompanies?.map((company) => (
                 <CompanyCard
+                  canRemove={canAddRemoveCompany()}
                   key={company}
                   company={company}
                   onRemove={() => handleRemoveCompany(company)}
@@ -114,7 +85,7 @@ streamState,
               onChange={(e) => setNewCompany(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddCompany()}
             />
-            <Button size="icon" onClick={handleAddCompany}>
+            <Button size="icon" onClick={handleAddCompany} disabled={!canAddRemoveCompany()}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>

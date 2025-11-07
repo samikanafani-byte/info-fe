@@ -23,7 +23,7 @@ export interface StreamState {
     completed_stages: string[];
 }
 
-function capitalizeFirstLetter(str: string): string {
+export function capitalizeFirstLetter(str: string): string {
     
     const words = str.trim().split(/\s+/);
     const capitalizedWords = words.map(word => {

@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 
 import Screen1_5DecodingHub from "@/components/screens/screen-1.5-decoding-hub"
 import Screen2ReviewBrief from "@/components/screens/screen-2-review-brief"
-import Screen2_5ReviewCompanies from "@/components/screens/screen-2.5-review-companies"
-import Screen3ReviewKeywords from "@/components/screens/screen-3-review-keywords"
+import Screen2_5ReviewCompanies from "@/components/screens/company/screen-2.5-review-companies"
+import Screen3ReviewKeywords from "@/components/screens/keywords/screen-3-review-keywords"
 import Screen5ReviewShortlist from "@/components/screens/review/screen-5-review-shortlist"
 import { Loader2, ArrowLeft } from "lucide-react"
 import {
@@ -56,6 +56,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
 
 
     useEffect(() => {
+        //we load the project when the component mounts and set it in state
         handleLoadProject();
     }, [project_id]);
 
@@ -105,7 +106,7 @@ export default function ContinueProjectPage({ params }: ProjectPageProps) {
         setIsLoading(true)
         setLoadingText("Preparing Company Review...")
         try {
-            const projectState = await continueProject(project?.session_id || "")
+            await continueProject(project?.session_id || "")
         } catch (error) {
             console.error("Error continuing project:", error)
         } finally {

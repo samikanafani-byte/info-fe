@@ -1,6 +1,7 @@
 import { AcceptResponse } from "@/types/acceptResponse";
 import { ProjectState } from "@/types/project";
 import { StreamState } from "@/types/streamState";
+import { UpdateStreamRequest } from "@/types/updateStreamRequest";
 import getAxiosInstance from "@/utils/axiosInstance";
 
 
@@ -49,3 +50,14 @@ export const continueProject = async (session_id: string): Promise<AcceptRespons
         throw error;
     }
 }
+export const patchProject = async (session_id: string, stream_id: string, patch_data: UpdateStreamRequest): Promise<ProjectState> => {
+    const axiosInstance = getAxiosInstance();
+    try {
+        const response = await axiosInstance.patch(`/projects/${session_id}/streams/${stream_id}`, patch_data);
+        return response.data;
+    } catch (error) {
+        console.error("Error patching project:", error);
+        throw error;
+    }
+}
+
