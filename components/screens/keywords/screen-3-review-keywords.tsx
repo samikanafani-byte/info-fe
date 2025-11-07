@@ -4,16 +4,13 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { X, Plus } from "lucide-react"
-import type { KeywordData, ReasonedKeyword } from "@/lib/data"
-import { ReasoningTooltip } from "@/components/reasoning-tooltip"
+import { Plus } from "lucide-react"
 import { StreamState } from "@/types/streamState"
 import { ProjectState } from "@/types/project"
 import { KeywordItem, Keywords } from "@/types/keywords"
-import { updateProject } from "@/services/projectService"
-import KeyWordComponent from "../ui/keywordComponent"
+import { patchProject, updateProject } from "@/services/projectService"
+import KeyWordComponent from "./components/keywordComponent"
 
 interface Screen3ReviewKeywordsProps {
   streamState: StreamState
@@ -33,7 +30,7 @@ export default function Screen3ReviewKeywords({
   
   const [newStreamState, setNewStreamState] = useState<StreamState>(streamState)
   const [newKeyword, setNewKeyword] = useState<{ [key: string]: string }>({})
-
+  
   const functionKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "function") ?? []
   const knowledgeKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "knowledge_gap") ?? []
   const seniorityKeyWords: KeywordItem[] = newStreamState.keywords?.list_of_keywords.filter((keyword) => keyword.category === "seniority") ?? []
@@ -64,8 +61,13 @@ export default function Screen3ReviewKeywords({
     }
     
     newStreamState.keywords.list_of_keywords = keyWordList
-    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
-    onDataChange(newResp)
+    // const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    // onDataChange(newResp)
+    // const stream_to_set = newResp.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
+      const data = {
+        keywords: newStreamState.keywords
+   }
+      const newResp = await patchProject(sessionId, streamState.stream_id, data)
     const stream_to_set = newResp.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
     if (stream_to_set){
       setNewStreamState(stream_to_set)
@@ -149,7 +151,6 @@ export default function Screen3ReviewKeywords({
   };
 
   const handleApprove= async () => {
-    // handle the approval
     
     const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
     onDataChange(newResp)

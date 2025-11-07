@@ -1,7 +1,7 @@
 import { StreamState } from "@/types/streamState";
 import { useExpertReviewStore } from "../store/expertReviewStore";
-import { useCallback } from "react"; // <-- Import useCallback
-import { Expert } from "@/lib/data"; // <-- Assuming Expert is needed for type safety
+import { useCallback } from "react"; 
+import { Expert } from "@/lib/data"; 
 import { convertHighlyRelevantJobFunctionExpertToExpert, convertRankedExpertsToExpert } from "@/types/expertState";
 
 export const useExpertReview = (streamState: StreamState, sessionId: string) => {
