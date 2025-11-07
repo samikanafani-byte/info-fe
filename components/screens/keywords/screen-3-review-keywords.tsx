@@ -9,7 +9,7 @@ import { Plus } from "lucide-react"
 import { StreamState } from "@/types/streamState"
 import { ProjectState } from "@/types/project"
 import { KeywordItem, Keywords } from "@/types/keywords"
-import { updateProject } from "@/services/projectService"
+import { patchProject, updateProject } from "@/services/projectService"
 import KeyWordComponent from "./components/keywordComponent"
 
 interface Screen3ReviewKeywordsProps {
@@ -61,8 +61,13 @@ export default function Screen3ReviewKeywords({
     }
     
     newStreamState.keywords.list_of_keywords = keyWordList
-    const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
-    onDataChange(newResp)
+    // const newResp = await updateProject(sessionId, newStreamState.stream_id, newStreamState)
+    // onDataChange(newResp)
+    // const stream_to_set = newResp.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
+      const data = {
+        keywords: newStreamState.keywords
+   }
+      const newResp = await patchProject(sessionId, streamState.stream_id, data)
     const stream_to_set = newResp.stream_states?.find(s => s.stream_id === newStreamState.stream_id)
     if (stream_to_set){
       setNewStreamState(stream_to_set)
