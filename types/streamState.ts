@@ -10,7 +10,7 @@ import { SearchStream } from "./searchStream";
 export interface StreamState {
     stream_id: string;
     search_stream: SearchStream;
-    
+    skip_benchmarking?: boolean;
     keywords?: Keywords;
     matching_companies_in_db?: string[];
     company_states?: CompanyState[];
@@ -163,13 +163,18 @@ export type ChainItem = {
 }
 export function getChainItems(streamState: StreamState): ChainItem[] {
 
-    // const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "benchmarking_profiles", "sourcing"];
-    const pageTitles: PageTitle[] = ["decode", "companies", "keywords", "benchmarking_titles", "sourcing"];
+    let pageTitles: PageTitle[];
+    if (streamState.skip_benchmarking) {
+        pageTitles = ["decode", "companies", "keywords", "sourcing"];
+    } else {
+        pageTitles = ["decode", "companies", "keywords", "benchmarking_titles", "sourcing"];
+    }
     const thoughtChains = pageTitles.map((stage) => ({
         key: stage,
         title: getThoughtTitle(stage),
         status: getStatusForThoughtChainItem(streamState || 'initial', stage),
     }));
+
     return thoughtChains;
 
 }

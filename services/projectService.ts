@@ -5,10 +5,10 @@ import { UpdateStreamRequest } from "@/types/updateStreamRequest";
 import getAxiosInstance from "@/utils/axiosInstance";
 
 
-export const createProject = async (request_email: string): Promise<AcceptResponse> => {
+export const createProject = async (request_email: string, skip_benchmarking: boolean): Promise<AcceptResponse> => {
     const axiosInstance = getAxiosInstance();
     try {
-        const response = await axiosInstance.post('/projects', { request_email });
+        const response = await axiosInstance.post('/projects', { request_email, skip_benchmarking });
         return response.data;
     } catch (error) {
         console.error("Error creating project:", error);
