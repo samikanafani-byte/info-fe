@@ -9,7 +9,9 @@ import { StreamState } from "@/types/streamState"
 import { convertHighlyRelevantJobFunctionExpertToExpert, convertRankedExpertsToExpert } from "@/types/expertState"
 import { useExpertReview } from "./hooks/useExpertReview"
 import { useExpertReviewStore } from "./store/expertReviewStore"
-import { exportExpertsPdf } from "@/services/projectService"
+import { exportExpertsCsv } from "@/services/projectService"
+import { Check } from "lucide-react"
+import { Checkbox } from "antd"
 
 interface Screen5ReviewShortlistProps {
   streamState: StreamState
@@ -44,10 +46,29 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto pr-2 -mr-2">
         <h2 className="text-lg font-semibold text-text-primary mb-1">Review & Shortlist</h2>
-        <p className="text-sm text-text-secondary mb-4">
-          Showing top {visibleExperts.length} of {allExperts.length} found experts.{" "}
-          <span className="font-semibold text-primary">{shortlisted.length} shortlisted.</span>
-        </p>
+        <div className="flex flex-row justify-between">
+          <p className="text-sm text-text-secondary mb-4">
+            Showing top {visibleExperts.length} of {allExperts.length} found experts.{" "}
+            <span className="font-semibold text-primary">{shortlisted.length} shortlisted.</span>
+          </p>
+          <div>
+            <Checkbox
+              checked={shortlisted.length === visibleExperts.length && visibleExperts.length > 0}
+              indeterminate={shortlisted.length > 0 && shortlisted.length < visibleExperts.length}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setShortlisted(visibleExperts.map((expert) => expert.id))
+                } else {
+                  setShortlisted([])
+                }
+              }}
+            >
+              <div className="flex flex-row items-center gap-2">
+                <span>Shortlist All</span>
+              </div>
+            </Checkbox>
+          </div>
+        </div>
 
         {/* Enhanced responsive grid with more columns at larger sizes */}
         <div className="space-y-3 @lg/main:grid @lg/main:grid-cols-2 @lg/main:gap-3 @lg/main:space-y-0 @3xl/main:grid-cols-3 @4xl/main:grid-cols-4 @5xl/main:grid-cols-5 @6xl/main:grid-cols-6 @7xl/main:grid-cols-7 @8xl/main:grid-cols-8 @9xl/main:grid-cols-9 @10xl/main:grid-cols-10">
@@ -73,12 +94,13 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
             disabled={newStreamState.completed_stages.includes("review")}
             onClick={
               () => {
-                // download using the service exportExpertsPdf
-                exportExpertsPdf(sessionId, newStreamState.stream_id, shortlisted).then((blob) => {
+
+                exportExpertsCsv(sessionId, newStreamState.stream_id, shortlisted).then((blob) => {
                   const url = window.URL.createObjectURL(new Blob([blob]));
                   const link = document.createElement('a');
                   link.href = url;
-                  link.setAttribute('download', 'shortlisted_experts.pdf');
+                  const file_name = `export_${newStreamState.stream_id}_${shortlisted.length}_shortlisted.csv`
+                  link.setAttribute('download', file_name);
                   document.body.appendChild(link);
                   link.click();
                   link.parentNode?.removeChild(link);
