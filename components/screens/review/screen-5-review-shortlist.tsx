@@ -9,6 +9,7 @@ import { StreamState } from "@/types/streamState"
 import { convertHighlyRelevantJobFunctionExpertToExpert, convertRankedExpertsToExpert } from "@/types/expertState"
 import { useExpertReview } from "./hooks/useExpertReview"
 import { useExpertReviewStore } from "./store/expertReviewStore"
+import { exportExpertsPdf } from "@/services/projectService"
 
 interface Screen5ReviewShortlistProps {
   streamState: StreamState
@@ -26,6 +27,7 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
   const visibleExperts = useExpertReviewStore((state) => state.visibleExperts) || []
   const allExperts = useExpertReviewStore((state) => state.allExperts) || []
   const selectedExpert = useExpertReviewStore((state) => state.selectedExpert)
+  
 
   useEffect(() => {
     // Load experts data when the component mounts or when streamState/sessionId changes
@@ -68,10 +70,25 @@ export default function Screen5ReviewShortlist({ onStartNewSearch, streamState, 
           </Button>
           <Button
             className="w-full"
-            disabled={shortlisted.length === 0}
-            onClick={() => alert(`Exporting ${shortlisted.length} experts...`)}
+            disabled={newStreamState.completed_stages.includes("review")}
+            onClick={
+              () => {
+                // download using the service exportExpertsPdf
+                exportExpertsPdf(sessionId, newStreamState.stream_id, shortlisted).then((blob) => {
+                  const url = window.URL.createObjectURL(new Blob([blob]));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', 'shortlisted_experts.pdf');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.parentNode?.removeChild(link);
+                }
+                )
+
+              }
+            }
           >
-            Export Shortlist ({shortlisted.length})
+            Export Shortlist
           </Button>
         </div>
       </div>
