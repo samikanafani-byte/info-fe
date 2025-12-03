@@ -60,4 +60,17 @@ export const patchProject = async (session_id: string, stream_id: string, patch_
         throw error;
     }
 }
-
+export const exportExpertsPdf = async (session_id: string, stream_id: string, expert_ids: string[]): Promise<Blob> => {
+    const axiosInstance = getAxiosInstance();
+    try {
+        const response = await axiosInstance.post(
+            `/projects/${session_id}/streams/${stream_id}/export`,
+            { expert_ids },
+            { responseType: 'blob' } 
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting experts to PDF:", error);
+        throw error;
+    }
+}
